@@ -1,0 +1,123 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &5393901842166044355
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 702452635436816784, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 702452635436816784, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 702452635436816784, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 702452635436816784, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 702452635436816784, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 702452635436816784, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 702452635436816784, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 702452635436816784, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 702452635436816784, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 702452635436816784, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 702452635436816784, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 702452635436816786, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_Name
+      value: MoveCard
+      objectReference: {fileID: 0}
+    - target: {fileID: 702452635436816787, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_Color.b
+      value: 0.15021354
+      objectReference: {fileID: 0}
+    - target: {fileID: 702452635436816787, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_Color.g
+      value: 0.8207547
+      objectReference: {fileID: 0}
+    - target: {fileID: 702452635436816787, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_Color.r
+      value: 0.20628849
+      objectReference: {fileID: 0}
+    - target: {fileID: 702452635436816787, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_SortingLayer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 702452635436816787, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_SortingLayerID
+      value: 1521065575
+      objectReference: {fileID: 0}
+    - target: {fileID: 1101165897834925641, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_Color.b
+      value: 0.1915984
+      objectReference: {fileID: 0}
+    - target: {fileID: 1101165897834925641, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_Color.g
+      value: 0.8679245
+      objectReference: {fileID: 0}
+    - target: {fileID: 1101165897834925641, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_Color.r
+      value: 0.2816729
+      objectReference: {fileID: 0}
+    - target: {fileID: 1101165897834925641, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_SortingLayer
+      value: -2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3177005910575897701, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+      propertyPath: m_SortingLayer
+      value: -2
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+--- !u!1 &4856395347240308561 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 702452635436816786, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
+  m_PrefabInstance: {fileID: 5393901842166044355}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2021867194539880225
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4856395347240308561}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 030429f29f3ca424cb06209f4e9924e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _name: Move Card
+  _manaCost: 1
+  _rarety: 0
+  _cardType: 0
+  _heroClass: 0
+  _aeraOfEffect: 5
+  _moveTime: 0.2
