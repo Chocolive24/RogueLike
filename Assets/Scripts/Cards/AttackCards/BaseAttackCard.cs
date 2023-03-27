@@ -7,13 +7,13 @@ using UnityEngine.Tilemaps;
 public class BaseAttackCard : BaseCard
 {
     public BaseAttackCard(string name, int manaCost, Rarety rarety, CardType cardType, HeroClass heroClass, 
-                        int aeraOfEffect,int damages) 
+                        int aeraOfEffect,int damage) 
         : base(name, manaCost, rarety, cardType, heroClass, aeraOfEffect)
     {
-        _damages = damages;
+        _damage = damage;
     }
 
-    [SerializeField] private int _damages;
+    [SerializeField] private int _damage;
     
     // Start is called before the first frame update
     protected override void Start()
@@ -25,15 +25,16 @@ public class BaseAttackCard : BaseCard
     protected override void Update()
     {
         base.Update();
-
-        //StartCoroutine(TestCo());
+        _cardEffectTxt.text = "Deal " + _damage + "\n damage \n";
     }
     
-    public override void DrawTilemap(Dictionary<Vector2, int> availableNeighbours, Tilemap tilemap, RuleTile ruleTile)
+    public override void DrawTilemap(Dictionary<Vector3, int> availableNeighbours, Tilemap tilemap, RuleTile ruleTile)
     {
-        if (availableNeighbours.ContainsKey(GetStartingTile().Position))
+        if (availableNeighbours.ContainsKey(GridManager.Instance.WorldTilemap.WorldToCell(
+                GetStartingTile().transform.position)))
         {
-            availableNeighbours.Remove(GetStartingTile().Position);
+            availableNeighbours.Remove(GridManager.Instance.WorldTilemap.WorldToCell(
+                GetStartingTile().transform.position));
         }
         
         base.DrawTilemap(availableNeighbours, tilemap, ruleTile);

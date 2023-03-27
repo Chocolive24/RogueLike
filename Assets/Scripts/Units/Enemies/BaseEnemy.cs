@@ -11,7 +11,7 @@ public class BaseEnemy : BaseUnit
     //private List<TileCell> _inRangeTiles;
     //private List<TileCell> _walkableInRangeTiles;
 
-    private Dictionary<Vector2, int> _availableTiles;
+    private Dictionary<Vector3, int> _availableTiles;
 
     private Tilemap _movementTilemap;
 
@@ -24,7 +24,7 @@ public class BaseEnemy : BaseUnit
     //     set => _inRangeTiles = value;
     // }
 
-    public Dictionary<Vector2, int> AvailableTiles
+    public Dictionary<Vector3, int> AvailableTiles
     {
         get => _availableTiles;
         set => _availableTiles = value;
@@ -46,7 +46,7 @@ public class BaseEnemy : BaseUnit
     
     private void Awake()
     {
-        _availableTiles = new Dictionary<Vector2, int>();
+        _availableTiles = new Dictionary<Vector3, int>();
     }
 
     // Start is called before the first frame update
@@ -71,7 +71,7 @@ public class BaseEnemy : BaseUnit
 
     public int CalculateDistanceFromThePlayer()
     {
-        Vector2 playerPos = Vector2.zero;
+        Vector3 playerPos = Vector3.zero;
         
         foreach (var item in GridManager.Instance.Tiles)
         {

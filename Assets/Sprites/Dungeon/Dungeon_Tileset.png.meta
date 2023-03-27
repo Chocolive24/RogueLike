@@ -2294,7 +2294,7 @@ TextureImporter:
       Dungeon_Tileset_25: -1520177085
       UpLeft: -425524272
       Dungeon_Tileset_69: -1299498712
-      RightMiddle: 121233387
+      Dungeon_Tileset_51: 1120154707
       Dungeon_Tileset_35: -805785000
       Dungeon_Tileset_63: -36836378
       Dungeon_Tileset_50: 1506163484
@@ -2361,11 +2361,11 @@ TextureImporter:
       Dungeon_Tileset_55: 1394404655
       Dungeon_Tileset_76: 2078025042
       Dungeon_Tileset_28: -644963178
+      RightDown: -1767729336
       Dungeon_Tileset_45: -2072830226
-      Dungeon_Tileset_80: 1059487513
       LeftMiddle: -1478921535
       Dungeon_Tileset_68: 1422014524
-      RightDown: -1767729336
+      Dungeon_Tileset_80: 1059487513
       Dungeon_Tileset_4: -2001768872
       Dungeon_Tileset_1: 1929765263
       Dungeon_Tileset_2: 1265657134
@@ -2390,8 +2390,8 @@ TextureImporter:
       Dungeon_Tileset_91: 119375373
       Dungeon_Tileset_57: -1112478071
       Dungeon_Tileset_71: 872415329
-      Dungeon_Tileset_51: 1120154707
       Dungeon_Tileset_85: -1098896010
+      RightMiddle: 121233387
       Dungeon_Tileset_58: -801607410
   spritePackingTag: 
   pSDRemoveMatte: 0

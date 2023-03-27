@@ -113,4 +113,4 @@ MonoBehaviour:
   _heroClass: 0
   _aeraOfEffect: 1
   _moveTime: 0.2
-  _damages: 5
+  _damage: 5

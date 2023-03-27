@@ -16,18 +16,18 @@ public abstract class TileCell : MonoBehaviour
     private BaseUnit _occupiedUnit;
     
     protected int movementCost = 1;
-    protected Vector2 _position;
-    
+    protected Vector3 _position;
+
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public string Name => _name;
     public BaseUnit OccupiedUnit { get => _occupiedUnit; set => _occupiedUnit = value; }
     public bool Walkable => _isWalkable && _occupiedUnit == null;
-    public Vector2 Position { get => _position; set => _position = value; }
+    public Vector3 Position { get => _position; set => _position = value; }
 
     // Methods ---------------------------------------------------------------------------------------------------------
     public virtual void Init(int x, int y)
     {
-        _position = new Vector2(x, y);
+        _position = GridManager.Instance.WorldToCellCenter(transform.position);
     }
 
     public void SetUnit(BaseUnit unit)
@@ -36,7 +36,6 @@ public abstract class TileCell : MonoBehaviour
         {
             unit.OccupiedTile.OccupiedUnit = null;
         }
-        unit.transform.position = transform.position;
         _occupiedUnit = unit;
         unit.OccupiedTile = this;
     }
@@ -48,6 +47,25 @@ public abstract class TileCell : MonoBehaviour
         UIBattleManager.Instance.ShowTileInfo(this);
 
         CheckForEnemyTilemapToCreate();
+
+        if (CardPlayedManager.Instance.CurrentCard != null)
+        {
+            if (CardPlayedManager.Instance.CurrentCard.CardType == CardType.MoveCard &&
+                CardPlayedManager.Instance.CurrentCard.AvailableTiles.ContainsKey(_position) &&
+                !_occupiedUnit)
+            {
+                BaseMoveCard card = (BaseMoveCard)CardPlayedManager.Instance.CurrentCard;
+            
+                card.PathTilemap = TilemapsManager.Instance.InstantiateTilemap("Path");
+
+                card.Path = TilemapsManager.Instance.GetPath(_position, card.AvailableTiles);
+
+                UnitsManager.Instance.SelectedHero.Path = card.Path;
+        
+                TilemapsManager.Instance.DrawPathTilemap(card.Path, card.PathTilemap, 
+                    TilemapsManager.Instance.AttackRuleTile);
+            }
+        }
     }
 
     void OnMouseExit()
@@ -57,6 +75,20 @@ public abstract class TileCell : MonoBehaviour
         UIBattleManager.Instance.ShowTileInfo(null);
         
         CheckForEnemyTilemapToDestroy();
+        if (CardPlayedManager.Instance.CurrentCard != null && 
+            CardPlayedManager.Instance.CurrentCard.AvailableTiles.ContainsKey(_position) &&
+            !_occupiedUnit)
+        {
+            if (CardPlayedManager.Instance.CurrentCard.CardType == CardType.MoveCard)
+            {
+                BaseMoveCard card = (BaseMoveCard)CardPlayedManager.Instance.CurrentCard;
+
+                if (card.PathTilemap)
+                {
+                    Destroy(card.PathTilemap.gameObject);
+                }
+            }
+        }
     }
     
     private void OnMouseDown()
@@ -112,6 +144,7 @@ public abstract class TileCell : MonoBehaviour
                 // and it is walkable.
                 if (CardPlayedManager.Instance.CurrentCard.AvailableTiles.ContainsKey(this.Position) && Walkable)
                 {
+                    UnitsManager.Instance.SelectedHero.HandleBattleMove();
                     SetUnit(UnitsManager.Instance.SelectedHero);
                     //UnitsManager.Instance.SetSelectedHero(null);
                     CardPlayedManager.Instance.HandlePlayedCard();
@@ -128,8 +161,11 @@ public abstract class TileCell : MonoBehaviour
             {
                 int x = (int)_occupiedUnit.transform.position.x;
                 int y = (int)_occupiedUnit.transform.position.y;
+
+                var pos = GridManager.Instance.WorldTilemap.WorldToCell(new Vector3(x, y, 0));
                 
-                TileCell startingTile = GridManager.Instance.GetTileAtPosition(new Vector2(x, y));
+                TileCell startingTile = GridManager.Instance.GetTileAtPosition(
+                    GridManager.Instance.WorldToCellCenter(pos));
                 
                 // If the Tilemap doesn't already exist, create and draw it.
                 if (!enemy.MovementTilemap)

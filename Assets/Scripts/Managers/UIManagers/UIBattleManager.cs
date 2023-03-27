@@ -15,9 +15,10 @@ public class UIBattleManager : MonoBehaviour
     [SerializeField] private GameObject _battlePanel;
     [SerializeField] private Button _endTurnButton;
     [SerializeField] private TextMeshProUGUI _currentTurnTxt;
-    //[SerializeField] private Image _manaContainer;
+    [SerializeField] private TextMeshProUGUI _notEnoughManaTxt;
     [SerializeField] private TextMeshProUGUI _manaNbrTxt;
     [SerializeField] private GameObject _selectedHeroObject, _tileObject, _tileUnitObject;
+    
 
     private void Awake()
     {
@@ -31,6 +32,7 @@ public class UIBattleManager : MonoBehaviour
         }
         
         _battlePanel.SetActive(false);
+        _notEnoughManaTxt.gameObject.SetActive(false);
         
         GameManager.OnGameStateChange += GameManagerOnOnGameStateChange;
         BattleManager.OnBattleStateChange += BattleManagerOnOnBattleStateChange;
@@ -66,10 +68,17 @@ public class UIBattleManager : MonoBehaviour
         
         if (UnitsManager.Instance.SelectedHero)
         {
-            _manaNbrTxt.text = UnitsManager.Instance.SelectedHero.CurrentMana.ToString() + " / " +
-                               UnitsManager.Instance.SelectedHero.MaxMana.ToString();
+            if (!CardPlayedManager.Instance.HasACardOnIt)
+            {
+                _manaNbrTxt.text = UnitsManager.Instance.SelectedHero.CurrentMana.ToString() + " / " +
+                                   UnitsManager.Instance.SelectedHero.MaxMana.ToString();
+            }
+            else
+            {
+                _manaNbrTxt.text = UnitsManager.Instance.SelectedHero.CurrentMana.ToString() + " / " +
+                                   UnitsManager.Instance.SelectedHero.MaxMana.ToString();
+            }
         }
-        
     }
 
     public void EndTheTurn()
@@ -88,8 +97,6 @@ public class UIBattleManager : MonoBehaviour
         
         _selectedHeroObject.GetComponentInChildren<TextMeshProUGUI>().text = hero.UnitName;
         _selectedHeroObject.SetActive(true);
-        
-        
     }
 
     public void ShowTileInfo(TileCell tile)
@@ -118,5 +125,14 @@ public class UIBattleManager : MonoBehaviour
             
             _tileUnitObject.SetActive(true);
         }
+    }
+
+    public IEnumerator NotEnoughManaCo()
+    {
+        _notEnoughManaTxt.gameObject.SetActive(true);
+
+        yield return new WaitForSeconds(1.5f);
+        
+        _notEnoughManaTxt.gameObject.SetActive(false);
     }
 }

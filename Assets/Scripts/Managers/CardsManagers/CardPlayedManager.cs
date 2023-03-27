@@ -150,6 +150,14 @@ public class CardPlayedManager : MonoBehaviour
     private void ClearCurrentCardTilemap()
     {
         Destroy(_currentCard.AoeTilemap.gameObject);
+
+        if (_currentCard.CardType == CardType.MoveCard)
+        {
+            if (_currentCard.GetComponent<BaseMoveCard>().PathTilemap)
+            {
+                Destroy(_currentCard.GetComponent<BaseMoveCard>().PathTilemap.gameObject);
+            }
+        }
     }
     
     private void MoveCardToHisDiscardPile()

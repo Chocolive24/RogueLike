@@ -73,6 +73,7 @@ public class UnitsManager : MonoBehaviour
         foreach (var hero in _heroes)
         {
             var rndSpawnedTile = GridManager.Instance.GetHeroSpawnTile();
+            hero.transform.position = rndSpawnedTile.transform.position;
             rndSpawnedTile.SetUnit(hero);
         }
         
@@ -104,7 +105,7 @@ public class UnitsManager : MonoBehaviour
             var randomPrefab = GetRandomUnit<BaseEnemy>(Faction.Enemy);
             var spawnedEnemy = Instantiate(randomPrefab);
             var randomSpawnTile = GridManager.Instance.GetEnemySpawnTile();
-            
+            spawnedEnemy.transform.position = randomSpawnTile.transform.position;
             randomSpawnTile.SetUnit(spawnedEnemy);
         }
         

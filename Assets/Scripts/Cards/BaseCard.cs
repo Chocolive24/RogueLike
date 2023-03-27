@@ -49,10 +49,14 @@ public abstract class BaseCard : MonoBehaviour
     protected BoxCollider2D _boxCollider2D;
 
     [SerializeField] private float _moveTime = 0.2f;
-    private TextMeshPro _manaNbrTxt;
+    
+    protected TextMeshPro _manaNbrTxt;
+    protected TextMeshPro _cardEffectTxt;
+
+    protected TextMeshPro[] _textes;
 
     // Lists for the aoe Tilemap ------------------------------------------------------------------
-    protected Dictionary<Vector2, int> _availableTiles;
+    protected Dictionary<Vector3, int> _availableTiles;
 
     // Getters and Setters ------------------------------------------------------------------------
     public Rarety Rarety => _rarety;
@@ -66,7 +70,7 @@ public abstract class BaseCard : MonoBehaviour
     public int AeraOfEffect => _aeraOfEffect;
     public int HandIndex { get => _handIndex; set => _handIndex = value; }
 
-    public Dictionary<Vector2, int> AvailableTiles => _availableTiles;
+    public Dictionary<Vector3, int> AvailableTiles => _availableTiles;
 
     public Tilemap AoeTilemap
     {
@@ -78,13 +82,21 @@ public abstract class BaseCard : MonoBehaviour
 
     private void Awake()
     {
-        _availableTiles = new Dictionary<Vector2, int>();
+        _availableTiles = new Dictionary<Vector3, int>();
         
         _boxCollider2D = GetComponent<BoxCollider2D>();
-        _manaNbrTxt = GetComponentInChildren<TextMeshPro>();
+
+        // Get all TextMeshPro Components in children from the highest in the hierarchy to the lowest.
+        // So the element 0 would be the manaNbrTxt and the 1 would be the cardEffectTxt.
+        _textes = GetComponentsInChildren<TextMeshPro>();
+
+        _manaNbrTxt = _textes[0];
+        _cardEffectTxt = _textes[1];
         
         _manaNbrTxt.GetComponent<MeshRenderer>().sortingLayerName = "Card";
         _manaNbrTxt.GetComponent<MeshRenderer>().sortingOrder = 2;
+        _cardEffectTxt.GetComponent<MeshRenderer>().sortingLayerName = "Card";
+        _cardEffectTxt.GetComponent<MeshRenderer>().sortingOrder = 2;
     }
 
     // Start is called before the first frame update
@@ -123,7 +135,7 @@ public abstract class BaseCard : MonoBehaviour
         }
     }
 
-    private void OnMouseEnter()
+    protected virtual void OnMouseEnter()
     {
         if (!_aoeTilemap)
         {
@@ -131,11 +143,11 @@ public abstract class BaseCard : MonoBehaviour
             
             this.GetAvailableTiles();
             
-            this.DrawTilemap(_availableTiles, _aoeTilemap, TilemapsManager.Instance.GetRuleTile(this)); 
+            this.DrawTilemap(_availableTiles, _aoeTilemap, TilemapsManager.Instance.GetRuleTile(this));
         }
     }
 
-    private void OnMouseExit()
+    protected virtual void OnMouseExit()
     {
         if (CardPlayedManager.Instance.CurrentCard != this && _aoeTilemap)
         {
@@ -147,6 +159,12 @@ public abstract class BaseCard : MonoBehaviour
     {
         bool isOutsideCardLimit = transform.position.y - (_boxCollider2D.bounds.size.y / 2) >
                                 CardPlayedManager.Instance._cardLimit.transform.position.y;
+
+        if (UnitsManager.Instance.SelectedHero.CurrentMana == 0)
+        {
+            StopCoroutine(UIBattleManager.Instance.NotEnoughManaCo());
+            StartCoroutine(UIBattleManager.Instance.NotEnoughManaCo());
+        }
         
         return isOutsideCardLimit && !CardPlayedManager.Instance.HasACardOnIt && 
                UnitsManager.Instance.SelectedHero.CurrentMana > 0;
@@ -155,10 +173,11 @@ public abstract class BaseCard : MonoBehaviour
     public virtual void GetAvailableTiles()
     {
         _availableTiles = TilemapsManager.Instance.GetAvailableTiles(
-            GetStartingTile().Position, _aeraOfEffect, this.gameObject);
+            GridManager.Instance.WorldToCellCenter(GetStartingTile().transform.position),
+            _aeraOfEffect, this.gameObject);
     }
 
-    public virtual void DrawTilemap(Dictionary<Vector2, int> availableNeighbours, Tilemap tilemap, RuleTile ruleTile)
+    public virtual void DrawTilemap(Dictionary<Vector3, int> availableNeighbours, Tilemap tilemap, RuleTile ruleTile)
     {
         TilemapsManager.Instance.DrawTilemap(availableNeighbours, tilemap, ruleTile);
     }

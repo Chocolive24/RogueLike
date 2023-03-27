@@ -13,7 +13,6 @@ public class BaseUnit : MonoBehaviour
     [SerializeField] private Faction _faction;
     public Faction Faction => _faction;
     
-    
     [SerializeField] protected int _hp;
     [SerializeField] protected int _attack;
     [SerializeField] protected int _shield;

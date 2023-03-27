@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Object = UnityEngine.Object;
@@ -21,11 +22,15 @@ public class BaseHero : BaseUnit
 
     [SerializeField] protected int _maxMana;
     
-    [SerializeField] protected float _speed = 1f;
+    [SerializeField] protected float _exploreSpeed = 10f;
+    [SerializeField] protected float _battleSpeed = 8f;
     
     protected int _currentMana;
 
-    protected Vector3 _targetPos;
+    protected Vector3? _targetPos = null;
+    
+    private Dictionary<Vector3, int> _path;
+    private int _currentTargetIndex;
 
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public int MaxMana { get => _maxMana; }
@@ -36,8 +41,26 @@ public class BaseHero : BaseUnit
         set => _currentMana = value;
     }
 
-    // -----------------------------------------------------------------------------------------------------------------
+    public Dictionary<Vector3, int> Path
+    {
+        get => _path;
+        set => _path = value;
+    }
+
+    public bool IsInBattle => GameManager.Instance.State == GameState.BATTLE;
     
+    // -----------------------------------------------------------------------------------------------------------------
+
+    private void Awake()
+    {
+        GameManager.OnGameStateChange += GameManagerOnOnGameStateChange;
+    }
+
+    private void GameManagerOnOnGameStateChange(GameState obj)
+    {
+        _targetPos = null;
+    }
+
     // Start is called before the first frame update
     protected void Start()
     {
@@ -49,6 +72,38 @@ public class BaseHero : BaseUnit
     // Update is called once per frame
     protected void Update()
     {
+        HandleMove();
+        HandleShuffleCardsBackToDeck();
+    }
+    
+    private void HandleMove()
+    {
+        if (_targetPos.HasValue)
+        {
+            _exploreSpeed = IsInBattle ? _battleSpeed : _exploreSpeed;
+
+            // Move the player to the target position
+            transform.position = Vector3.MoveTowards(transform.position, _targetPos.Value,
+                _exploreSpeed * Time.deltaTime);
+
+            // The distance between the player and the target point would never be exactly equal to 0.
+            // So we check with an Epsilon value if the player as reached the target position.
+            // Then we set his position to the target position in in order to be precise.
+            if (Vector3.Distance(transform.position, _targetPos.Value) <= 0.01f)
+            {
+                transform.position = _targetPos.Value;
+                _targetPos = null;
+
+                if (IsInBattle)
+                {
+                    HandleBattleMove();
+                }
+            }
+        }
+    }
+
+    private void HandleShuffleCardsBackToDeck()
+    {
         if (_movDiscardDeck.DiscardDeck.Count >= _movementDeck.Size)
         {
             _movDiscardDeck.ShuffleCardsBackToDeck(_movementDeck.Deck);
@@ -57,23 +112,8 @@ public class BaseHero : BaseUnit
         {
             _mainDiscardDeck.ShuffleCardsBackToDeck(_mainDeck.Deck);
         }
-
-        if (GameManager.Instance.State == GameState.EXPLORING)
-        {
-            // Move the player to the Mouse position
-            transform.position = Vector3.MoveTowards(transform.position, _targetPos, 
-                _speed * Time.deltaTime);
-        
-            // Stop the player and set his position to the Mouse position if the Distance between
-            // the 2 points is less or equal to 0.01f.
-            if (Vector3.Distance(transform.position, _targetPos) <= 0.01f)
-            {
-                transform.position = _targetPos;
-            }
-        }
-        
     }
-
+    
     protected void InitializeDecks()
     {
         var foundDecks = FindObjectsOfType<DeckController>();
@@ -101,18 +141,16 @@ public class BaseHero : BaseUnit
                 if (discardDeck.DiscardCardType == DiscardCardType.Movement)
                 {
                     _movDiscardDeck = discardDeck;
-                    Debug.Log(_movDiscardDeck);
                 }
                 else if(discardDeck.DiscardCardType == DiscardCardType.Main)
                 {
                     _mainDiscardDeck = discardDeck;
-                    Debug.Log(_mainDiscardDeck);
                 }
             }
         }
     }
 
-    public void HandleMove(InputAction.CallbackContext ctx)
+    public void HandleExploreMove(InputAction.CallbackContext ctx)
     {
         if (ctx.started)
         {
@@ -122,7 +160,19 @@ public class BaseHero : BaseUnit
 
                 _targetPos = new Vector3(mousePos.x, mousePos.y, 0);
             }
-            
+        }
+    }
+
+    public void HandleBattleMove()
+    {
+        if (_currentTargetIndex < _path.Count) 
+        {
+            _targetPos = GridManager.Instance.WorldToCellCenter(_path.Keys.Last());
+            _path.Remove(_path.Keys.Last());
+        }
+        else
+        {
+            _targetPos = null;
         }
     }
 }

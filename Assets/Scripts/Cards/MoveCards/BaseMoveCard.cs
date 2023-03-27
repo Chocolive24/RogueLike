@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -12,23 +13,33 @@ public class BaseMoveCard : BaseCard
         
     }
 
+    private Dictionary<Vector3, int> _path;
+    private Tilemap _pathTilemap;
+    
+    // Getters and Setters ---------------------------------------------------------------------------------------------
+    public Dictionary<Vector3, int> Path
+    {
+        get => _path;
+        set => _path = value;
+    }
+
+    public Tilemap PathTilemap
+    {
+        get => _pathTilemap;
+        set => _pathTilemap = value;
+    }
+
+    // Methods ---------------------------------------------------------------------------------------------------------
+    
     protected override void Start()
     {
         base.Start();
+        _path = new Dictionary<Vector3, int>();
     }
 
     protected override void Update()
     {
         base.Update();
+        _cardEffectTxt.text = "Move " + _aeraOfEffect + "\n squares \n";
     }
-
-    // public override void DrawTilemap(List<TileCell> inRangeTiles, List<TileCell> aoeTiles,
-    //                                 Tilemap tilemap, RuleTile ruleTile, TileCell tile)
-    // {
-    //     var aoeTile = Instantiate(tile, GetStartingTile().transform.position, Quaternion.identity);
-    //             
-    //     _aoeTiles.Add(aoeTile);
-    //     
-    //     base.DrawTilemap(inRangeTiles, aoeTiles, tilemap, ruleTile, tile);
-    // }
 }

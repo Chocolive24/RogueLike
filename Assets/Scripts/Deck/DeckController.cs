@@ -42,7 +42,7 @@ public abstract class DeckController : MonoBehaviour
         for (int i = 0; i < cardNbr; i++)
         {
             var card = CardsManager.Instance.InstantiateCard(scriptableCards, Rarety.Basic);
-            //card.transform.parent = transform;
+            card.transform.parent = gameObject.transform;
             
             card.gameObject.SetActive(false);
 

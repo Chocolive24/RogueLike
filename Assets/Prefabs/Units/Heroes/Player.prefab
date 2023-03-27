@@ -135,7 +135,7 @@ MonoBehaviour:
   _mainDeck: {fileID: 0}
   _heroClass: 0
   _maxMana: 5
-  _moveTime: 1
+  _speed: 8
 --- !u!114 &1717701707816038680
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -165,7 +165,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 3186090413270359488}
         m_TargetAssemblyTypeName: BaseHero, Assembly-CSharp
-        m_MethodName: HandleMove
+        m_MethodName: HandleExploreMove
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
