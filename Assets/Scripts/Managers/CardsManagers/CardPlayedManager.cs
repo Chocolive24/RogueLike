@@ -153,9 +153,12 @@ public class CardPlayedManager : MonoBehaviour
 
         if (_currentCard.CardType == CardType.MoveCard)
         {
-            if (_currentCard.GetComponent<BaseMoveCard>().PathTilemap)
+            BaseMoveCard card = _currentCard.GetComponent<BaseMoveCard>();
+            
+            foreach (var item in card.Path)
             {
-                Destroy(_currentCard.GetComponent<BaseMoveCard>().PathTilemap.gameObject);
+                var tile = GridManager.Instance.GetTileAtPosition(item.Key);
+                tile.Arrow.SetActive(false);
             }
         }
     }

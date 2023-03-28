@@ -7,6 +7,14 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 307524951785278573, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+      propertyPath: m_Layer
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1184784357796646008, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1803554073235813179, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
       propertyPath: m_Name
       value: MovementTile
@@ -91,8 +99,26 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9171203242256662871, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+      propertyPath: m_Layer
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 9171203242256662871, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+--- !u!1 &4112926204771467825 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9171203242256662871, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+  m_PrefabInstance: {fileID: 5067293222021235558}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &4762037662257843979 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 307524951785278573, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+  m_PrefabInstance: {fileID: 5067293222021235558}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &6869439179885899869 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1803554073235813179, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
@@ -113,7 +139,13 @@ MonoBehaviour:
   _name: 
   _spriteRender: {fileID: 8740499788474810876}
   _highlight: {fileID: 7422446542747433802}
+  _highlightBorder: {fileID: 4112926204771467825}
+  _arrow: {fileID: 4762037662257843979}
   _isWalkable: 1
+  _arrows:
+  - {fileID: -1840451443, guid: 015372037f7b4454da0da32b27a760ee, type: 3}
+  - {fileID: -377742848, guid: 015372037f7b4454da0da32b27a760ee, type: 3}
+  - {fileID: -1289207132, guid: 015372037f7b4454da0da32b27a760ee, type: 3}
 --- !u!1 &7422446542747433802 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2401394523178235948, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}

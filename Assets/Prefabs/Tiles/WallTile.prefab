@@ -7,6 +7,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1184784357796646008, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1803554073235813179, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
       propertyPath: m_Name
       value: WallTile
@@ -71,8 +75,17 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9171203242256662871, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+--- !u!1 &2912860569684871469 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9171203242256662871, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+  m_PrefabInstance: {fileID: 6280876063879956602}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &5633340536715508545 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1803554073235813179, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
@@ -93,7 +106,18 @@ MonoBehaviour:
   _name: Wall
   _spriteRender: {fileID: 7508905657075534560}
   _highlight: {fileID: 8536942636262158422}
+  _highlightBorder: {fileID: 2912860569684871469}
+  _arrow: {fileID: 6011931466176037911}
   _isWalkable: 0
+  _arrows:
+  - {fileID: -1840451443, guid: 015372037f7b4454da0da32b27a760ee, type: 3}
+  - {fileID: -377742848, guid: 015372037f7b4454da0da32b27a760ee, type: 3}
+  - {fileID: -1289207132, guid: 015372037f7b4454da0da32b27a760ee, type: 3}
+--- !u!1 &6011931466176037911 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 307524951785278573, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+  m_PrefabInstance: {fileID: 6280876063879956602}
+  m_PrefabAsset: {fileID: 0}
 --- !u!212 &7508905657075534560 stripped
 SpriteRenderer:
   m_CorrespondingSourceObject: {fileID: 4548312822160360090, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}

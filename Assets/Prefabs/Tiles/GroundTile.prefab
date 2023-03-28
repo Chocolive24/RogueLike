@@ -7,6 +7,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1184784357796646008, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1803554073235813179, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
       propertyPath: m_Name
       value: GroundTile
@@ -79,8 +83,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9171203242256662871, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+--- !u!1 &4034793667372786226 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9171203242256662871, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+  m_PrefabInstance: {fileID: 5240184145335722853}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &5547401093067419400 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 307524951785278573, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+  m_PrefabInstance: {fileID: 5240184145335722853}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &5890529542374903902 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1803554073235813179, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
@@ -101,7 +119,13 @@ MonoBehaviour:
   _name: Ground
   _spriteRender: {fileID: 8621584989842547199}
   _highlight: {fileID: 7632378913658100553}
+  _highlightBorder: {fileID: 4034793667372786226}
+  _arrow: {fileID: 5547401093067419400}
   _isWalkable: 1
+  _arrows:
+  - {fileID: -1840451443, guid: 015372037f7b4454da0da32b27a760ee, type: 3}
+  - {fileID: -377742848, guid: 015372037f7b4454da0da32b27a760ee, type: 3}
+  - {fileID: -1289207132, guid: 015372037f7b4454da0da32b27a760ee, type: 3}
   _baseColor: {r: 0.3962264, g: 0.3962264, b: 0.3962264, a: 1}
   _offsetColor: {r: 0.1792453, g: 0.1792453, b: 0.1792453, a: 1}
   _isOffset: 1

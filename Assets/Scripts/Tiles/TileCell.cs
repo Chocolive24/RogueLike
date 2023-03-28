@@ -1,22 +1,28 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Packages.Rider.Editor.UnitTesting;
 using UnityEditor.Search;
 using UnityEngine;
 
-public abstract class TileCell : MonoBehaviour
+public class TileCell : MonoBehaviour
 {
     // Attributes ------------------------------------------------------------------------------------------------------
-    [SerializeField] private string _name;
+    [SerializeField] protected string _name;
     [SerializeField] protected SpriteRenderer _spriteRender;
     [SerializeField] protected GameObject _highlight;
-    [SerializeField] private bool _isWalkable;
+    [SerializeField] protected GameObject _highlightBorder;
+    [SerializeField] protected GameObject _arrow;
+    [SerializeField] protected bool _isWalkable;
 
-    private BaseUnit _occupiedUnit;
+    protected BaseUnit _occupiedUnit;
     
     protected int movementCost = 1;
     protected Vector3 _position;
+    
+    [SerializeField] protected List<Sprite> _arrows;
+    private ArrowTranslator _arrowTranslator;
 
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public string Name => _name;
@@ -24,7 +30,21 @@ public abstract class TileCell : MonoBehaviour
     public bool Walkable => _isWalkable && _occupiedUnit == null;
     public Vector3 Position { get => _position; set => _position = value; }
 
+    public GameObject Arrow => _arrow;
+    
+    public List<Sprite> Arrows
+    {
+        get => _arrows;
+        set => _arrows = value;
+    }
+
     // Methods ---------------------------------------------------------------------------------------------------------
+
+    private void Start()
+    {
+        _arrowTranslator = new ArrowTranslator();
+    }
+
     public virtual void Init(int x, int y)
     {
         _position = GridManager.Instance.WorldToCellCenter(transform.position);
@@ -40,14 +60,15 @@ public abstract class TileCell : MonoBehaviour
         unit.OccupiedTile = this;
     }
     
-    void OnMouseEnter()
+    protected virtual void OnMouseEnter()
     {
         _highlight.SetActive(true);
+        _highlightBorder.SetActive(true);
         
         UIBattleManager.Instance.ShowTileInfo(this);
 
         CheckForEnemyTilemapToCreate();
-
+        
         if (CardPlayedManager.Instance.CurrentCard != null)
         {
             if (CardPlayedManager.Instance.CurrentCard.CardType == CardType.MoveCard &&
@@ -55,22 +76,38 @@ public abstract class TileCell : MonoBehaviour
                 !_occupiedUnit)
             {
                 BaseMoveCard card = (BaseMoveCard)CardPlayedManager.Instance.CurrentCard;
-            
-                card.PathTilemap = TilemapsManager.Instance.InstantiateTilemap("Path");
 
                 card.Path = TilemapsManager.Instance.GetPath(_position, card.AvailableTiles);
-
-                UnitsManager.Instance.SelectedHero.Path = card.Path;
         
-                TilemapsManager.Instance.DrawPathTilemap(card.Path, card.PathTilemap, 
-                    TilemapsManager.Instance.AttackRuleTile);
+                UnitsManager.Instance.SelectedHero.Path = card.Path;
+
+                List<TileCell> pathTiles = new List<TileCell>();
+                
+                foreach (var item in card.Path)
+                {
+                    var tile = GridManager.Instance.GetTileAtPosition(item.Key);
+                    tile.Arrow.transform.rotation = Quaternion.identity;
+                    tile.Arrow.SetActive(true);
+                    pathTiles.Add(tile);
+                }
+
+                pathTiles.Reverse();
+
+                for (int i = 0; i < pathTiles.Count; i++)
+                {
+                    var previousTile = i > 0 ? pathTiles[i - 1] : UnitsManager.Instance.SelectedHero.OccupiedTile;
+                    var futureTile = i < pathTiles.Count - 1 ? pathTiles[i + 1] : null;
+
+                    _arrowTranslator.DrawArrowPath(previousTile, pathTiles[i], futureTile);
+                }
             }
         }
     }
 
-    void OnMouseExit()
+    protected virtual void OnMouseExit()
     {
         _highlight.SetActive(false);
+        _highlightBorder.SetActive(false);
         
         UIBattleManager.Instance.ShowTileInfo(null);
         
@@ -82,16 +119,18 @@ public abstract class TileCell : MonoBehaviour
             if (CardPlayedManager.Instance.CurrentCard.CardType == CardType.MoveCard)
             {
                 BaseMoveCard card = (BaseMoveCard)CardPlayedManager.Instance.CurrentCard;
-
-                if (card.PathTilemap)
+                
+                foreach (var item in card.Path)
                 {
-                    Destroy(card.PathTilemap.gameObject);
+                    Debug.Log(item);
+                    var tile = GridManager.Instance.GetTileAtPosition(item.Key);
+                    tile.Arrow.SetActive(false);
                 }
             }
         }
     }
     
-    private void OnMouseDown()
+    protected virtual void OnMouseDown()
     {
         if (BattleManager.Instance.State != BattleState.HEROES_TURN)
         {

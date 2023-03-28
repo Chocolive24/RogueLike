@@ -30,7 +30,8 @@ public class BaseHero : BaseUnit
     protected Vector3? _targetPos = null;
     
     private Dictionary<Vector3, int> _path;
-    private int _currentTargetIndex;
+    private List<Vector3> _pathPositions;
+    private int _currentTargetIndex = 0;
 
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public int MaxMana { get => _maxMana; }
@@ -54,6 +55,8 @@ public class BaseHero : BaseUnit
     private void Awake()
     {
         GameManager.OnGameStateChange += GameManagerOnOnGameStateChange;
+
+        _pathPositions = new List<Vector3>();
     }
 
     private void GameManagerOnOnGameStateChange(GameState obj)
@@ -165,14 +168,26 @@ public class BaseHero : BaseUnit
 
     public void HandleBattleMove()
     {
-        if (_currentTargetIndex < _path.Count) 
+        if (_pathPositions.Count == 0)
         {
-            _targetPos = GridManager.Instance.WorldToCellCenter(_path.Keys.Last());
-            _path.Remove(_path.Keys.Last());
+            foreach (var item in _path)
+            {
+                _pathPositions.Add(item.Key);
+            }
+            
+            _pathPositions.Reverse();
+        }
+        
+        if (_currentTargetIndex < _pathPositions.Count) 
+        {
+            _targetPos = GridManager.Instance.WorldToCellCenter(_pathPositions[_currentTargetIndex]);
+            _currentTargetIndex++;
         }
         else
         {
             _targetPos = null;
+            _currentTargetIndex = 0;
+            _pathPositions.Clear();
         }
     }
 }
