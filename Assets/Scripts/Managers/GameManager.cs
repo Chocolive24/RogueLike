@@ -5,26 +5,52 @@ using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 
-public enum GameState
-{
-    EXPLORING,
-    BATTLE,
-    VICTORY,
-    DEFEAT
-}
-
 public class GameManager : MonoBehaviour
 {
+    // Singleton -------------------------------------------------------------------------------------------------------
+    #region Singleton
+
     private static GameManager _instance;
     public static GameManager Instance { get { return _instance; } }
 
-    private GameState _state;
-    public GameState State => _state;
+    #endregion
+    
+    // Attributes ------------------------------------------------------------------------------------------------------
+    private bool _isInBattleState = false;
+    
+    // References ------------------------------------------------------------------------------------------------------
+    #region Gamebjects
 
-    public static event Action<GameState> OnGameStateChange;
-
+    [SerializeField] private Transform _camTrans;
     [SerializeField] private TextMeshProUGUI _currentState;
+    
+    #endregion
+    
+    private BattleManager _battleManager;
+    
+    // State Pattern ---------------------------------------------------------------------------------------------------
+    #region Game States
 
+    private ExploringGameState _exploringGameState;
+    private BattleGameState _battleGameState;
+
+    #endregion
+    
+    // State Machine
+    private StateMachine _stateMachine;
+
+    // Getters and Setters ---------------------------------------------------------------------------------------------
+    public static event Action OnGameStateChange;
+
+    public bool IsInBattleState
+    {
+        get => _isInBattleState;
+        set => _isInBattleState = value;
+    }
+
+    private float _time = 0;
+
+    // Methods ---------------------------------------------------------------------------------------------------------
     private void Awake()
     {
         if (_instance != null && _instance != this)
@@ -40,62 +66,41 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        //UpdateGameState(GameState.GENERATE_GRID);
-        UpdateGameState(GameState.EXPLORING);
+        ReferenceManagers();
 
-        StartCoroutine(TestCo());
-        
-        
-    }
+        CreateStatePattern();
 
-    private IEnumerator TestCo()
-    {
-        yield return new WaitForSeconds(2f);
-        UpdateGameState(GameState.BATTLE);
+        _camTrans.transform.position = new Vector3(7.5f, -10, -10);
     }
     
+    private void ReferenceManagers()
+    {
+        _battleManager = BattleManager.Instance;
+    }
+    
+    private void CreateStatePattern()
+    {
+        _exploringGameState = new ExploringGameState(this);
+        _battleGameState = new BattleGameState(_battleManager);
+
+        _stateMachine = new StateMachine();
+
+        _stateMachine.AddTransition(_exploringGameState, _battleGameState, () => _time > 2f);
+        _stateMachine.AddTransition(_battleGameState, _exploringGameState, () => !_isInBattleState);
+
+        _stateMachine.SetState(_exploringGameState);
+    }
+
     // Update is called once per frame
     void Update()
     {
-        _currentState.text = _state.ToString();
+        _time += Time.deltaTime;
+
+        _stateMachine.Tick();
     }
-
-    public void UpdateGameState(GameState newState)
+    
+    public void UpdateGameState()
     {
-        _state = newState;
-
-        switch (newState)
-        {
-            // case GameState.GENERATE_GRID:
-            //     Debug.Log("1");
-            //     GridManager.Instance.GenerateGrid();
-            //     break;
-            // case GameState.SPAWN_HEROES:
-            //     Debug.Log("2");
-            //     UnitsManager.Instance.SpawnHeroes();
-            //     break;
-            // case GameState.SPAWN_ENEMIES:
-            //     Debug.Log("3");
-            //     UnitsManager.Instance.SpawnEnemies();
-            //     break;
-            case GameState.EXPLORING:
-                break;
-            case GameState.BATTLE:
-                BattleManager.Instance.StartBattle();
-                break;
-            // case GameState.HeroesTurn:
-            //     HandleHeroesTurn();
-            //     break;
-            // case GameState.EnemiesTurn:
-            //     break;
-            case GameState.VICTORY:
-                break;
-            case GameState.DEFEAT:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
-        }
-
-        OnGameStateChange?.Invoke(newState);
+        OnGameStateChange?.Invoke();
     }
 }

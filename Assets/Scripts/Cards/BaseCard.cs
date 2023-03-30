@@ -25,7 +25,8 @@ public enum CardType
 
 public abstract class BaseCard : MonoBehaviour
 {
-    public BaseCard(string name, int manaCost, Rarety rarety, CardType cardType, HeroClass heroClass, int aeraOfEffect)
+    public BaseCard(string name, int manaCost, Rarety rarety, CardType cardType, HeroClass heroClass, 
+                    int aeraOfEffect)
     {
         _name = name;
         _manaCost = manaCost;
@@ -35,6 +36,11 @@ public abstract class BaseCard : MonoBehaviour
         _aeraOfEffect = aeraOfEffect;
     }
 
+    // Attributes ------------------------------------------------------------------------------------------------------
+
+    #region Tweakable Values
+
+    // Constructor Values
     [SerializeField] protected string _name;
     [SerializeField] protected int _manaCost;
     [SerializeField] protected Rarety _rarety;
@@ -42,23 +48,48 @@ public abstract class BaseCard : MonoBehaviour
     [SerializeField] protected HeroClass _heroClass;
     [SerializeField] protected int _aeraOfEffect;
 
-    protected Tilemap _aoeTilemap;
-    
-    protected int _handIndex;
-
-    protected BoxCollider2D _boxCollider2D;
-
+    // Other Values
     [SerializeField] private float _moveTime = 0.2f;
     
+    #endregion
+
+    #region TextMeshPro Attributes
+
     protected TextMeshPro _manaNbrTxt;
     protected TextMeshPro _cardEffectTxt;
 
     protected TextMeshPro[] _textes;
 
-    // Lists for the aoe Tilemap ------------------------------------------------------------------
+    #endregion
+
+    #region Tile Attributes
+
+    protected Tilemap _aoeTilemap;
+    
     protected Dictionary<Vector3, int> _availableTiles;
 
-    // Getters and Setters ------------------------------------------------------------------------
+    #endregion
+    
+    protected int _handIndex;
+
+    protected BoxCollider2D _boxCollider2D;
+
+    // References ------------------------------------------------------------------------------------------------------
+
+    #region Managers
+
+    protected CardPlayedManager _cardPlayedManager;
+    protected GridManager _gridManager;
+    protected TilemapsManager _tilemapsManager;
+    protected UIBattleManager _uiBattleManager;
+    protected UnitsManager _unitsManager;
+    
+    #endregion
+    
+    // Getters and Setters ---------------------------------------------------------------------------------------------
+
+    #region Getters and Setters
+
     public Rarety Rarety => _rarety;
     public int ManaCost
     {
@@ -78,21 +109,27 @@ public abstract class BaseCard : MonoBehaviour
         set => _aoeTilemap = value;
     }
 
-    // --------------------------------------------------------------------------------------------
-
+    #endregion
+    
+    // Methods ---------------------------------------------------------------------------------------------------------
     private void Awake()
     {
         _availableTiles = new Dictionary<Vector3, int>();
         
         _boxCollider2D = GetComponent<BoxCollider2D>();
 
+        GetTextes();
+    }
+
+    private void GetTextes()
+    {
         // Get all TextMeshPro Components in children from the highest in the hierarchy to the lowest.
         // So the element 0 would be the manaNbrTxt and the 1 would be the cardEffectTxt.
         _textes = GetComponentsInChildren<TextMeshPro>();
 
         _manaNbrTxt = _textes[0];
         _cardEffectTxt = _textes[1];
-        
+
         _manaNbrTxt.GetComponent<MeshRenderer>().sortingLayerName = "Card";
         _manaNbrTxt.GetComponent<MeshRenderer>().sortingOrder = 2;
         _cardEffectTxt.GetComponent<MeshRenderer>().sortingLayerName = "Card";
@@ -102,7 +139,16 @@ public abstract class BaseCard : MonoBehaviour
     // Start is called before the first frame update
     protected virtual void Start()
     {
-        
+        ReferenceManagers();
+    }
+
+    private void ReferenceManagers()
+    {
+        _cardPlayedManager = CardPlayedManager.Instance;
+        _gridManager = GridManager.Instance;
+        _tilemapsManager = TilemapsManager.Instance;
+        _uiBattleManager = UIBattleManager.Instance;
+        _unitsManager = UnitsManager.Instance;
     }
 
     // Update is called once per frame
@@ -124,14 +170,14 @@ public abstract class BaseCard : MonoBehaviour
         if (CheckIfCanBePlayed())
         {
             StartCoroutine(InterpolateMoveCo(transform.position, 
-                CardPlayedManager.Instance._cardLocation.transform.position));
+                _cardPlayedManager._cardLocation.transform.position));
             
-            CardPlayedManager.Instance.CurrentCard = this;
+            _cardPlayedManager.CurrentCard = this;
         }
         else 
         {
             StartCoroutine(InterpolateMoveCo(transform.position, 
-                CardPlayedManager.Instance.CardSlots[_handIndex].position));
+                _cardPlayedManager.CardSlots[_handIndex].position));
         }
     }
 
@@ -139,17 +185,17 @@ public abstract class BaseCard : MonoBehaviour
     {
         if (!_aoeTilemap)
         {
-            _aoeTilemap = TilemapsManager.Instance.InstantiateTilemap(_name + " aoe");
+            _aoeTilemap = _tilemapsManager.InstantiateTilemap(_name + " aoe");
             
             this.GetAvailableTiles();
             
-            this.DrawTilemap(_availableTiles, _aoeTilemap, TilemapsManager.Instance.GetRuleTile(this));
+            this.DrawTilemap(_availableTiles, _aoeTilemap, _tilemapsManager.GetRuleTile(this));
         }
     }
 
     protected virtual void OnMouseExit()
     {
-        if (CardPlayedManager.Instance.CurrentCard != this && _aoeTilemap)
+        if (_cardPlayedManager.CurrentCard != this && _aoeTilemap)
         {
             Destroy(_aoeTilemap.gameObject);
         }
@@ -158,34 +204,35 @@ public abstract class BaseCard : MonoBehaviour
     private bool CheckIfCanBePlayed()
     {
         bool isOutsideCardLimit = transform.position.y - (_boxCollider2D.bounds.size.y / 2) >
-                                CardPlayedManager.Instance._cardLimit.transform.position.y;
+                                  _cardPlayedManager._cardLimit.transform.position.y;
 
-        if (UnitsManager.Instance.SelectedHero.CurrentMana == 0)
+        if (_unitsManager.SelectedHero.CurrentMana == 0)
         {
-            StopCoroutine(UIBattleManager.Instance.NotEnoughManaCo());
-            StartCoroutine(UIBattleManager.Instance.NotEnoughManaCo());
+            StopCoroutine(_uiBattleManager.NotEnoughManaCo());
+            StartCoroutine(_uiBattleManager.NotEnoughManaCo());
         }
         
-        return isOutsideCardLimit && !CardPlayedManager.Instance.HasACardOnIt && 
-               UnitsManager.Instance.SelectedHero.CurrentMana > 0;
+        return isOutsideCardLimit && !_cardPlayedManager.HasACardOnIt && 
+               _unitsManager.SelectedHero.CurrentMana > 0;
     }
     
     public virtual void GetAvailableTiles()
     {
-        _availableTiles = TilemapsManager.Instance.GetAvailableTiles(
-            GridManager.Instance.WorldToCellCenter(GetStartingTile().transform.position),
+        _availableTiles = _tilemapsManager.GetAvailableTiles(
+            _gridManager.WorldToCellCenter(GetStartingTile().transform.position),
             _aeraOfEffect, this.gameObject);
     }
 
-    public virtual void DrawTilemap(Dictionary<Vector3, int> availableNeighbours, Tilemap tilemap, RuleTile ruleTile)
+    public virtual void DrawTilemap(Dictionary<Vector3, int> availableNeighbours, 
+                                    Tilemap tilemap, RuleTile ruleTile)
     {
-        TilemapsManager.Instance.DrawTilemap(availableNeighbours, tilemap, ruleTile);
+        _tilemapsManager.DrawTilemap(availableNeighbours, tilemap, ruleTile);
     }
 
     // TODO Would not work with cards that not start from the player !!!!
     public virtual TileCell GetStartingTile()
     {
-        foreach (var item in GridManager.Instance.Tiles)
+        foreach (var item in _gridManager.Tiles)
         {
             //
             // TODO CHANGE TO THE HERO CLASS OR SOMETHING ELSE THAN FACTION

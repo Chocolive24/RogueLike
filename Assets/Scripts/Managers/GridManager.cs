@@ -17,14 +17,19 @@ public class GridManager : MonoBehaviour
     
     // Attributes ------------------------------------------------------------------------------------------------------
     [SerializeField] private int _width, _height;
-    [SerializeField] private TileCell _ground, _wall;
+    
+    private Dictionary<Vector3, TileCell> _tiles;
+    
+    // References ------------------------------------------------------------------------------------------------------
+
+    #region Gameobjects
+
     [SerializeField] private Transform _camTrans;
     [SerializeField] private Tilemap _worldTilemap;
     [SerializeField] private RuleTile _groundRuleTile, _wallRuleTile;
 
-    private Dictionary<Vector3, TileCell> _tiles;
-    private Dictionary<Vector2, TileBase> _test;
-
+    #endregion
+    
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public Vector2 Size => new Vector2(_width, _height);
     public Tilemap WorldTilemap => _worldTilemap;
@@ -74,8 +79,6 @@ public class GridManager : MonoBehaviour
         
         _camTrans.transform.position = new Vector3((float)_width / 2f - 0.5f, 
                      (float)_height / 2f - 0.5f -1f, -10);
-        
-        BattleManager.Instance.UpdateBattleState(BattleState.SPAWN_HEROES);
     }
 
     public TileCell GetHeroSpawnTile()

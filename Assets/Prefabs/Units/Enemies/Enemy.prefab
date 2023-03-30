@@ -9,7 +9,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1977486373816229693, guid: 96564f87f22cc59478c479e065f325a8, type: 3}
       propertyPath: m_Name
-      value: Enemy 1
+      value: Enemy
       objectReference: {fileID: 0}
     - target: {fileID: 4091820338577843121, guid: 96564f87f22cc59478c479e065f325a8, type: 3}
       propertyPath: m_RootOrder
@@ -82,3 +82,15 @@ MonoBehaviour:
   _shield: 0
   _movement: 5
   _distanceFromThePlayer: 0
+--- !u!114 &-3602923137750318040
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7063361556025432317}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e36dbdda0221f8d4e9d49abdf71237e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

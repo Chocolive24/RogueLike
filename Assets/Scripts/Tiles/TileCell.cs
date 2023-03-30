@@ -10,21 +10,48 @@ public class TileCell : MonoBehaviour
 {
     // Attributes ------------------------------------------------------------------------------------------------------
     [SerializeField] protected string _name;
-    [SerializeField] protected SpriteRenderer _spriteRender;
-    [SerializeField] protected GameObject _highlight;
-    [SerializeField] protected GameObject _highlightBorder;
-    [SerializeField] protected GameObject _arrow;
     [SerializeField] protected bool _isWalkable;
 
     protected BaseUnit _occupiedUnit;
     
     protected int movementCost = 1;
     protected Vector3 _position;
+
+    protected int _g;
+    protected int _h;
+
+    protected Vector3 _previousTilePos;
+    
+    // References ------------------------------------------------------------------------------------------------------
+    [SerializeField] protected SpriteRenderer _spriteRender;
+    
+    #region GameObjects
+
+    
+    [SerializeField] protected GameObject _highlight;
+    [SerializeField] protected GameObject _highlightBorder;
+    [SerializeField] protected GameObject _arrow;
+
+    #endregion
     
     [SerializeField] protected List<Sprite> _arrows;
     private ArrowTranslator _arrowTranslator;
 
+    #region Managers
+
+    private GameManager _gameManager;
+    private GridManager _gridManager;
+    private CardPlayedManager _cardPlayedManager;
+    private UnitsManager _unitsManager;
+    private UIBattleManager _uiBattleManager;
+    private TilemapsManager _tilemapsManager;
+
+    #endregion
+    
     // Getters and Setters ---------------------------------------------------------------------------------------------
+
+    #region Getters and Setters
+
     public string Name => _name;
     public BaseUnit OccupiedUnit { get => _occupiedUnit; set => _occupiedUnit = value; }
     public bool Walkable => _isWalkable && _occupiedUnit == null;
@@ -38,6 +65,29 @@ public class TileCell : MonoBehaviour
         set => _arrows = value;
     }
 
+    public int G
+    {
+        get => _g;
+        set => _g = value;
+    }
+
+    public int H
+    {
+        get => _h;
+        set => _h = value;
+    }
+
+    public int F => _g + _h;
+
+    public Vector3 PreviousTilePos
+    {
+        get => _previousTilePos;
+        set => _previousTilePos = value;
+    }
+
+    #endregion
+    
+
     // Methods ---------------------------------------------------------------------------------------------------------
 
     private void Start()
@@ -45,9 +95,20 @@ public class TileCell : MonoBehaviour
         _arrowTranslator = new ArrowTranslator();
     }
 
+    private void ReferenceManagers()
+    {
+        _gameManager = GameManager.Instance;
+        _gridManager = GridManager.Instance;
+        _unitsManager = UnitsManager.Instance;
+        _cardPlayedManager = CardPlayedManager.Instance;
+        _uiBattleManager = UIBattleManager.Instance;
+        _tilemapsManager = TilemapsManager.Instance;
+    }
+
     public virtual void Init(int x, int y)
     {
-        _position = GridManager.Instance.WorldToCellCenter(transform.position);
+        ReferenceManagers();
+        _position = _gridManager.WorldToCellCenter(transform.position);
     }
 
     public void SetUnit(BaseUnit unit)
@@ -65,27 +126,27 @@ public class TileCell : MonoBehaviour
         _highlight.SetActive(true);
         _highlightBorder.SetActive(true);
         
-        UIBattleManager.Instance.ShowTileInfo(this);
+        _uiBattleManager.ShowTileInfo(this);
 
         CheckForEnemyTilemapToCreate();
         
-        if (CardPlayedManager.Instance.CurrentCard != null)
+        if (_cardPlayedManager.CurrentCard != null)
         {
-            if (CardPlayedManager.Instance.CurrentCard.CardType == CardType.MoveCard &&
-                CardPlayedManager.Instance.CurrentCard.AvailableTiles.ContainsKey(_position) &&
+            if (_cardPlayedManager.CurrentCard.CardType == CardType.MoveCard &&
+                _cardPlayedManager.CurrentCard.AvailableTiles.ContainsKey(_position) &&
                 !_occupiedUnit)
             {
-                BaseMoveCard card = (BaseMoveCard)CardPlayedManager.Instance.CurrentCard;
+                BaseMoveCard card = (BaseMoveCard)_cardPlayedManager.CurrentCard;
 
-                card.Path = TilemapsManager.Instance.GetPath(_position, card.AvailableTiles);
+                card.Path = _tilemapsManager.FindPathWithinRange(_position, card.AvailableTiles);
         
-                UnitsManager.Instance.SelectedHero.Path = card.Path;
+                _unitsManager.SelectedHero.Path = card.Path;
 
                 List<TileCell> pathTiles = new List<TileCell>();
                 
                 foreach (var item in card.Path)
                 {
-                    var tile = GridManager.Instance.GetTileAtPosition(item.Key);
+                    var tile = _gridManager.GetTileAtPosition(item.Key);
                     tile.Arrow.transform.rotation = Quaternion.identity;
                     tile.Arrow.SetActive(true);
                     pathTiles.Add(tile);
@@ -95,7 +156,7 @@ public class TileCell : MonoBehaviour
 
                 for (int i = 0; i < pathTiles.Count; i++)
                 {
-                    var previousTile = i > 0 ? pathTiles[i - 1] : UnitsManager.Instance.SelectedHero.OccupiedTile;
+                    var previousTile = i > 0 ? pathTiles[i - 1] : _unitsManager.SelectedHero.OccupiedTile;
                     var futureTile = i < pathTiles.Count - 1 ? pathTiles[i + 1] : null;
 
                     _arrowTranslator.DrawArrowPath(previousTile, pathTiles[i], futureTile);
@@ -109,21 +170,20 @@ public class TileCell : MonoBehaviour
         _highlight.SetActive(false);
         _highlightBorder.SetActive(false);
         
-        UIBattleManager.Instance.ShowTileInfo(null);
+        _uiBattleManager.ShowTileInfo(null);
         
         CheckForEnemyTilemapToDestroy();
-        if (CardPlayedManager.Instance.CurrentCard != null && 
-            CardPlayedManager.Instance.CurrentCard.AvailableTiles.ContainsKey(_position) &&
+        if (_cardPlayedManager.CurrentCard != null && 
+            _cardPlayedManager.CurrentCard.AvailableTiles.ContainsKey(_position) &&
             !_occupiedUnit)
         {
-            if (CardPlayedManager.Instance.CurrentCard.CardType == CardType.MoveCard)
+            if (_cardPlayedManager.CurrentCard.CardType == CardType.MoveCard)
             {
-                BaseMoveCard card = (BaseMoveCard)CardPlayedManager.Instance.CurrentCard;
+                BaseMoveCard card = (BaseMoveCard)_cardPlayedManager.CurrentCard;
                 
                 foreach (var item in card.Path)
                 {
-                    Debug.Log(item);
-                    var tile = GridManager.Instance.GetTileAtPosition(item.Key);
+                    var tile = _gridManager.GetTileAtPosition(item.Key);
                     tile.Arrow.SetActive(false);
                 }
             }
@@ -132,7 +192,7 @@ public class TileCell : MonoBehaviour
     
     protected virtual void OnMouseDown()
     {
-        if (BattleManager.Instance.State != BattleState.HEROES_TURN)
+        if (!_gameManager.IsInBattleState)
         {
             return;
         }
@@ -143,7 +203,7 @@ public class TileCell : MonoBehaviour
             // If the unit is a hero, set this hero to selected.
             if (_occupiedUnit.Faction == Faction.Hero)
             {
-                UnitsManager.Instance.SetSelectedHero((BaseHero)_occupiedUnit);
+                _unitsManager.SetSelectedHero((BaseHero)_occupiedUnit);
             }
             // Else, destroy the enemy on the tile we clicked.
             else
@@ -152,21 +212,22 @@ public class TileCell : MonoBehaviour
 
                 enemy.IsSelected = !enemy.IsSelected;
 
-                if (UnitsManager.Instance.SelectedHero != null && 
-                    CardPlayedManager.Instance.HasAnAttackCardOnIt)
+                if (_unitsManager.SelectedHero != null && 
+                    _cardPlayedManager.HasAnAttackCardOnIt)
                 {
                     // potential stuff to do
                     //enemy.TakeDamage();
                     // or
                     // UnitsManager.INstance.SelectedHero.Attack();
                     
-                    if (CardPlayedManager.Instance.CurrentCard.AvailableTiles.ContainsKey(this.Position) && enemy != null)
+                    if (_cardPlayedManager.CurrentCard.AvailableTiles.ContainsKey(this.Position) && enemy != null)
                     {
                         enemy.IsSelected = false;
                         Destroy(enemy.MovementTilemap.gameObject);
                         Destroy(enemy.gameObject);
+                        _unitsManager.Enemies.Remove(enemy);
                         //UnitsManager.Instance.SetSelectedHero(null);
-                        CardPlayedManager.Instance.HandlePlayedCard();
+                        _cardPlayedManager.HandlePlayedCard();
                     }
                 }
             }
@@ -176,17 +237,17 @@ public class TileCell : MonoBehaviour
         else
         {
             //Check if we have a selected hero and if we have played a moveCard.
-            if (UnitsManager.Instance.SelectedHero != null  && 
-                CardPlayedManager.Instance.HasAMoveCardOnIt)
+            if (_unitsManager.SelectedHero != null  && 
+                _cardPlayedManager.HasAMoveCardOnIt)
             {
                 // If so, move the hero to the tile where the player clicked if it is in the range of the aoe moveCard
                 // and it is walkable.
-                if (CardPlayedManager.Instance.CurrentCard.AvailableTiles.ContainsKey(this.Position) && Walkable)
+                if (_cardPlayedManager.CurrentCard.AvailableTiles.ContainsKey(this.Position) && Walkable)
                 {
-                    UnitsManager.Instance.SelectedHero.HandleBattleMove();
-                    SetUnit(UnitsManager.Instance.SelectedHero);
+                    _unitsManager.SelectedHero.HandleBattleMove();
+                    SetUnit(_unitsManager.SelectedHero);
                     //UnitsManager.Instance.SetSelectedHero(null);
-                    CardPlayedManager.Instance.HandlePlayedCard();
+                    _cardPlayedManager.HandlePlayedCard();
                 }
             }
         }
@@ -201,22 +262,22 @@ public class TileCell : MonoBehaviour
                 int x = (int)_occupiedUnit.transform.position.x;
                 int y = (int)_occupiedUnit.transform.position.y;
 
-                var pos = GridManager.Instance.WorldTilemap.WorldToCell(new Vector3(x, y, 0));
+                var pos = _gridManager.WorldTilemap.WorldToCell(new Vector3(x, y, 0));
                 
-                TileCell startingTile = GridManager.Instance.GetTileAtPosition(
-                    GridManager.Instance.WorldToCellCenter(pos));
+                TileCell startingTile = _gridManager.GetTileAtPosition(
+                    _gridManager.WorldToCellCenter(pos));
                 
                 // If the Tilemap doesn't already exist, create and draw it.
                 if (!enemy.MovementTilemap)
                 {
-                    enemy.MovementTilemap = TilemapsManager.Instance.InstantiateTilemap("Enemy Movement");
+                    enemy.MovementTilemap = _tilemapsManager.InstantiateTilemap("Enemy Movement");
 
-                    enemy.AvailableTiles = TilemapsManager.Instance.GetAvailableTiles(startingTile.Position,
+                    enemy.AvailableTiles = _tilemapsManager.GetAvailableTiles(startingTile.Position,
                         _occupiedUnit.GetComponent<BaseEnemy>().Movement, enemy.gameObject);
                     
-                    TilemapsManager.Instance.DrawTilemap(enemy.AvailableTiles,
+                    _tilemapsManager.DrawTilemap(enemy.AvailableTiles,
                         enemy.MovementTilemap, 
-                        TilemapsManager.Instance.AttackRuleTile);
+                        _tilemapsManager.AttackRuleTile);
                 }
             }
         }

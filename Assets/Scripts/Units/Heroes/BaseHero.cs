@@ -14,26 +14,45 @@ public enum HeroClass
 
 public class BaseHero : BaseUnit
 {
-    [SerializeField] protected DeckController _movementDeck;
-    [SerializeField] protected DeckController _mainDeck;
-    protected DiscardDeckController _movDiscardDeck;
-    protected DiscardDeckController _mainDiscardDeck;
-    [SerializeField] protected HeroClass _heroClass;
+    // Attributes ------------------------------------------------------------------------------------------------------
 
+    #region Tweakable Values
+
+    [SerializeField] protected HeroClass _heroClass;
     [SerializeField] protected int _maxMana;
-    
     [SerializeField] protected float _exploreSpeed = 10f;
     [SerializeField] protected float _battleSpeed = 8f;
+
+    #endregion
+
+    #region Decks
+
+    protected DeckController _movementDeck;
+    protected DeckController _mainDeck;
+    protected DiscardDeckController _movDiscardDeck;
+    protected DiscardDeckController _mainDiscardDeck;
+
+    #endregion
+
+    #region Pathfinding Attributes
+
+    protected Vector3? _targetPos1 = null;
+    protected Dictionary<Vector3, int> _path1;
+    protected List<Vector3> _pathPositions1;
+    protected int _currentTargetIndex1 = 0;
+
+    #endregion
     
     protected int _currentMana;
-
-    protected Vector3? _targetPos = null;
     
-    private Dictionary<Vector3, int> _path;
-    private List<Vector3> _pathPositions;
-    private int _currentTargetIndex = 0;
-
+    // References ------------------------------------------------------------------------------------------------------
+    // private GameManager _gameManager;
+    // private GridManager _gridManager;
+    
     // Getters and Setters ---------------------------------------------------------------------------------------------
+
+    #region Getters and Setters
+
     public int MaxMana { get => _maxMana; }
 
     public int CurrentMana
@@ -44,11 +63,11 @@ public class BaseHero : BaseUnit
 
     public Dictionary<Vector3, int> Path
     {
-        get => _path;
-        set => _path = value;
+        get => _path1;
+        set => _path1 = value;
     }
-
-    public bool IsInBattle => GameManager.Instance.State == GameState.BATTLE;
+    
+    #endregion
     
     // -----------------------------------------------------------------------------------------------------------------
 
@@ -56,18 +75,23 @@ public class BaseHero : BaseUnit
     {
         GameManager.OnGameStateChange += GameManagerOnOnGameStateChange;
 
-        _pathPositions = new List<Vector3>();
+        _pathPositions1 = new List<Vector3>();
     }
 
-    private void GameManagerOnOnGameStateChange(GameState obj)
+    private void GameManagerOnOnGameStateChange()
     {
-        _targetPos = null;
+        _targetPos1 = null;
     }
 
     // Start is called before the first frame update
-    protected void Start()
+    protected override void Start()
     {
+        base.Start();
+        
         InitializeDecks();
+        
+        // _gameManager1 = GameManager.Instance;
+        // _gridManager1 = GridManager.Instance;
 
         _currentMana = _maxMana;
     }
@@ -76,28 +100,29 @@ public class BaseHero : BaseUnit
     protected void Update()
     {
         HandleMove();
+        
         HandleShuffleCardsBackToDeck();
     }
     
     private void HandleMove()
     {
-        if (_targetPos.HasValue)
+        if (_targetPos1.HasValue)
         {
-            _exploreSpeed = IsInBattle ? _battleSpeed : _exploreSpeed;
+            float speed = _gameManager.IsInBattleState ? _battleSpeed : _exploreSpeed;
 
             // Move the player to the target position
-            transform.position = Vector3.MoveTowards(transform.position, _targetPos.Value,
-                _exploreSpeed * Time.deltaTime);
+            transform.position = Vector3.MoveTowards(transform.position, _targetPos1.Value,
+                speed * Time.deltaTime);
 
             // The distance between the player and the target point would never be exactly equal to 0.
             // So we check with an Epsilon value if the player as reached the target position.
-            // Then we set his position to the target position in in order to be precise.
-            if (Vector3.Distance(transform.position, _targetPos.Value) <= 0.01f)
+            // Then we set his position to the target position in order to be precise.
+            if (Vector3.Distance(transform.position, _targetPos1.Value) <= 0.01f)
             {
-                transform.position = _targetPos.Value;
-                _targetPos = null;
+                transform.position = _targetPos1.Value;
+                _targetPos1 = null;
 
-                if (IsInBattle)
+                if (_gameManager.IsInBattleState)
                 {
                     HandleBattleMove();
                 }
@@ -157,37 +182,37 @@ public class BaseHero : BaseUnit
     {
         if (ctx.started)
         {
-            if (GameManager.Instance.State == GameState.EXPLORING)
+            if (!_gameManager.IsInBattleState)
             {
                 Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
-                _targetPos = new Vector3(mousePos.x, mousePos.y, 0);
+                _targetPos1 = new Vector3(mousePos.x, mousePos.y, 0);
             }
         }
     }
 
     public void HandleBattleMove()
     {
-        if (_pathPositions.Count == 0)
+        if (_pathPositions1.Count == 0)
         {
-            foreach (var item in _path)
+            foreach (var item in _path1)
             {
-                _pathPositions.Add(item.Key);
+                _pathPositions1.Add(item.Key);
             }
             
-            _pathPositions.Reverse();
+            _pathPositions1.Reverse();
         }
         
-        if (_currentTargetIndex < _pathPositions.Count) 
+        if (_currentTargetIndex1 < _pathPositions1.Count) 
         {
-            _targetPos = GridManager.Instance.WorldToCellCenter(_pathPositions[_currentTargetIndex]);
-            _currentTargetIndex++;
+            _targetPos1 = _gridManager.WorldToCellCenter(_pathPositions1[_currentTargetIndex1]);
+            _currentTargetIndex1++;
         }
         else
         {
-            _targetPos = null;
-            _currentTargetIndex = 0;
-            _pathPositions.Clear();
+            _targetPos1 = null;
+            _currentTargetIndex1 = 0;
+            _pathPositions1.Clear();
         }
     }
 }

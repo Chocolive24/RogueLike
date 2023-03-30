@@ -14,11 +14,12 @@ public class CardsManager : MonoBehaviour
     private List<ScriptableCard> _scrBasicAttackCards;
     private List<ScriptableCard> _scrBasicDefenseCards;
     
-    // Getters and Setters -------------------------------------------------------------------
+    // Getters and Setters ---------------------------------------------------------------------------------------------
     public List<ScriptableCard> ScrBasicMoveCards => _scrBasicMoveCards;
     public List<ScriptableCard> ScrBasicAttackCards => _scrBasicAttackCards;
     public List<ScriptableCard> ScrBasicDefenseCards => _scrBasicDefenseCards;
 
+    // Methods ---------------------------------------------------------------------------------------------------------
     private void Awake()
     {
         if (_instance != null && _instance != this)
@@ -33,18 +34,6 @@ public class CardsManager : MonoBehaviour
         _scrBasicMoveCards = Resources.LoadAll<ScriptableCard>("Cards/MoveCards/BasicMoveCards").ToList();
         _scrBasicAttackCards = Resources.LoadAll<ScriptableCard>(
             "Cards/AttackCards/PaladinCards/BasicAttackCards").ToList();
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
     
     public BaseCard InstantiateCard(List<ScriptableCard> scriptableCards, Rarety rarety)

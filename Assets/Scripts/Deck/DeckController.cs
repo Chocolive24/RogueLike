@@ -74,9 +74,4 @@ public abstract class DeckController : MonoBehaviour
     }
     
     // TODO AddCard() -> add a new card in the deck and update the size (_size = _deck.Count)
-    
-    // private void OnMouseDown()
-    // {
-    //     DrawACard();
-    // }
 }

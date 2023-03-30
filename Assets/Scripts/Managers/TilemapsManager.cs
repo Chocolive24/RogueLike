@@ -9,11 +9,14 @@ using UnityEngine.Tilemaps;
 
 public class TilemapsManager : MonoBehaviour
 {
-    // Singleton -----------------------------------------------------------------------------------------------
+    // Singleton -------------------------------------------------------------------------------------------------------
     private static TilemapsManager _instance;
     public static TilemapsManager Instance { get { return _instance; } }
     
-    // Tilemaps and Tiles --------------------------------------------------------------------------------------
+    // References ------------------------------------------------------------------------------------------------------
+
+    #region Tilemaps and Tiles
+
     [SerializeField] private Tilemap _movementTilemap;
     [SerializeField] private Tilemap _attackTilemap;
     [SerializeField] private RuleTile _movementRuleTile;
@@ -23,12 +26,20 @@ public class TilemapsManager : MonoBehaviour
 
     [SerializeField] private GameObject _tilemapPrefab;
 
-    // Getters and Setters -------------------------------------------------------------------------------------
+    #endregion
+
+    #region Managers
+
+    private GridManager _gridManager;
+
+    #endregion
+
+    // Getters and Setters ---------------------------------------------------------------------------------------------
     public Tilemap AttackTilemap => _attackTilemap;
     public RuleTile AttackRuleTile => _attackRuleTile;
     public TileCell AttackTile => _attackTile;
 
-    // ---------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------
     
     private void Awake()
     {
@@ -45,7 +56,7 @@ public class TilemapsManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        _gridManager = GridManager.Instance;
     }
 
     // Update is called once per frame
@@ -94,9 +105,10 @@ public class TilemapsManager : MonoBehaviour
             
             foreach (var direction in new Vector3[] { Vector3.up, Vector3.down, Vector3.left, Vector3.right })
             {
-                var neighbor = GridManager.Instance.WorldToCellCenter(currentPos + direction);
+                var neighbor = _gridManager.WorldToCellCenter(currentPos + direction);
 
-                if (IsPositionAvailable(neighbor, countEnemies) && !distances.ContainsKey(neighbor))
+                if (IsPositionAvailable(neighbor, false, countEnemies) && 
+                    !distances.ContainsKey(neighbor))
                 {
                     if (distances[currentPos] + 1 <= range)
                     {
@@ -110,15 +122,19 @@ public class TilemapsManager : MonoBehaviour
         return distances;
     }
 
-    private bool IsPositionAvailable(Vector3 position, bool countEnemies)
+    private bool IsPositionAvailable(Vector3 position, bool countHeroes, bool countEnemies)
     {
-        if (GridManager.Instance.GetTileAtPosition(position) != null)
+        if (_gridManager.GetTileAtPosition(position) != null)
         {
-            TileCell tile = GridManager.Instance.GetTileAtPosition(position);
+            TileCell tile = _gridManager.GetTileAtPosition(position);
             
             if (countEnemies && tile.OccupiedUnit != null)
             {
                 return tile.OccupiedUnit.Faction == Faction.Enemy;
+            }
+            else if (countHeroes && tile.OccupiedUnit != null)
+            {
+                return tile.OccupiedUnit.Faction == Faction.Hero;
             }
 
             return tile.Walkable;
@@ -143,7 +159,75 @@ public class TilemapsManager : MonoBehaviour
         }
     }
 
-    public Dictionary<Vector3, int> GetPath(Vector3 startPos, Dictionary<Vector3, int> availableTiles)
+    public List<Vector3> FindPath(Vector3 startPos, Vector3 endPos)
+    {
+        List<Vector3> openList = new List<Vector3>();
+        List<Vector3> closedList = new List<Vector3>();
+        
+        openList.Add(startPos);
+
+        while (openList.Count > 0)
+        {
+            Vector3 currentPos = openList.OrderBy(x => _gridManager.GetTileAtPosition(x).F).First();
+
+            openList.Remove(currentPos);
+            closedList.Add(currentPos);
+
+            if (currentPos == endPos)
+            {
+                return RestrucutrePath(startPos, endPos);
+            }
+            
+            foreach (var direction in new Vector3[] { Vector3.up, Vector3.down, Vector3.left, Vector3.right })
+            {
+                var neighbor = _gridManager.WorldToCellCenter(currentPos + direction);
+
+                if (!IsPositionAvailable(neighbor, true,false) || closedList.Contains(neighbor))
+                {
+                    continue;
+                }
+                
+                _gridManager.GetTileAtPosition(neighbor).G = GetManhattenDistance(startPos, neighbor);
+                _gridManager.GetTileAtPosition(neighbor).H = GetManhattenDistance(endPos, neighbor);
+
+                _gridManager.GetTileAtPosition(neighbor).PreviousTilePos = currentPos;
+
+                if (!openList.Contains(neighbor))
+                {
+                    openList.Add(neighbor);
+                }
+            }
+        }
+
+        return new List<Vector3>();
+    }
+
+    
+
+    private int GetManhattenDistance(Vector3 startPos, Vector3 neighbor)
+    {
+        return (int)(Mathf.Abs(startPos.x - neighbor.x) + Mathf.Abs(startPos.y - neighbor.y));
+    }
+    
+    private List<Vector3> RestrucutrePath(Vector3 startPos, Vector3 endPos)
+    {
+        List<Vector3> finishedList = new List<Vector3>();
+
+        Vector3 currentPos = endPos;
+
+        while (currentPos != startPos)
+        {
+            Debug.Log(currentPos);
+            finishedList.Add(currentPos);
+            currentPos = _gridManager.GetTileAtPosition(currentPos).PreviousTilePos;
+        }
+
+        finishedList.Reverse();
+        
+        return finishedList;
+    }
+
+    public Dictionary<Vector3, int> FindPathWithinRange(Vector3 startPos, Dictionary<Vector3, int> availableTiles)
     {
         var queue = new Queue<Vector3>();
         Dictionary<Vector3, int> path = new Dictionary<Vector3, int>();
@@ -168,7 +252,7 @@ public class TilemapsManager : MonoBehaviour
             // If we found a neighbor, add it to the path and queue for further processing
             if (neighbor != null)
             {
-                var neighborPos = GridManager.Instance.WorldToCellCenter(neighbor.Value.Key);
+                var neighborPos = _gridManager.WorldToCellCenter(neighbor.Value.Key);
                 var neighborDistance = neighbor.Value.Value;
     
                 path[neighborPos] = neighborDistance;
@@ -219,20 +303,6 @@ public class TilemapsManager : MonoBehaviour
         }
     }
     
-    public Tilemap GetTilemap(BaseCard baseCard)
-    {
-        if (baseCard.CardType == CardType.MoveCard)
-        {
-            return _movementTilemap;
-        }
-        if (baseCard.CardType == CardType.Attackcard)
-        {
-            return _attackTilemap;
-        }
-
-        return null;
-    }
-
     public RuleTile GetRuleTile(BaseCard baseCard)
     {
         if (baseCard.CardType == CardType.MoveCard)
@@ -242,20 +312,6 @@ public class TilemapsManager : MonoBehaviour
         if (baseCard.CardType == CardType.Attackcard)
         {
             return _attackRuleTile;
-        }
-
-        return null;
-    }
-    
-    public TileCell GetTile(BaseCard baseCard)
-    {
-        if (baseCard.CardType == CardType.MoveCard)
-        {
-            return _movementTile;
-        }
-        if (baseCard.CardType == CardType.Attackcard)
-        {
-            return _attackTile;
         }
 
         return null;

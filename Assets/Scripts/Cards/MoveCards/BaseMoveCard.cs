@@ -13,10 +13,14 @@ public class BaseMoveCard : BaseCard
         
     }
 
+    // Attributes ------------------------------------------------------------------------------------------------------
     private Dictionary<Vector3, int> _path;
     private Tilemap _pathTilemap;
     
     // Getters and Setters ---------------------------------------------------------------------------------------------
+
+    #region Getters and Setters
+
     public Dictionary<Vector3, int> Path
     {
         get => _path;
@@ -29,6 +33,8 @@ public class BaseMoveCard : BaseCard
         set => _pathTilemap = value;
     }
 
+    #endregion
+    
     // Methods ---------------------------------------------------------------------------------------------------------
     
     protected override void Start()

@@ -14,26 +14,46 @@ public class CardPlayedManager : MonoBehaviour
 
     // Attributes ------------------------------------------------------------------------------------------------------
     [SerializeField] private Texture2D _baseMouseCursor;
+
+    private BaseCard _currentCard;
     
+    #region Card Emplacements
+
     [Header("Card Emplacements")]
     [SerializeField] public GameObject _cardLocation;
     [SerializeField] public GameObject _cardLimit;
     [SerializeField] private Transform[] _cardSlots;
     [SerializeField] private bool[] _availableCardSlots;
 
+    #endregion
+
+    #region Decks
+
     [Header("Paladin's Discard Decks")]
     [SerializeField] private DiscardDeckController _paladinMovDiscDeckContr;
     [SerializeField] private DiscardDeckController _paladinMainDiscDeckContr;
 
-    private BaseCard _currentCard;
+
+    #endregion
+
+    #region Has a Card on it Booleans
 
     private bool _hasACardOnIt;
-    
     private bool _hasAMoveCardOnIt = false;
     private bool _hasAnAttackCardOnIt = false;
     private bool _hasADefendCardOnIt = false;
 
+    #endregion
+    
+    // References ------------------------------------------------------------------------------------------------------
+    private TilemapsManager _tilemapsManager;
+    private UnitsManager _unitsManager;
+    private GridManager _gridManager;
+    
     // Getters and Setters ---------------------------------------------------------------------------------------------
+
+    #region Getters and Setters
+
     public BaseCard CurrentCard
     {
         get => _currentCard;
@@ -51,6 +71,8 @@ public class CardPlayedManager : MonoBehaviour
         set => _availableCardSlots = value;
     }
 
+    #endregion
+    
     // -----------------------------------------------------------------------------------------------------------------
 
     private void Awake()
@@ -75,15 +97,13 @@ public class CardPlayedManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        _tilemapsManager = TilemapsManager.Instance;
+        _unitsManager = UnitsManager.Instance;
+        _gridManager = GridManager.Instance;
+        
         Cursor.SetCursor(_baseMouseCursor, Vector2.zero, CursorMode.ForceSoftware);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-    
     // TODO MAKE A CLICK SYSTEM LIKE INSCRYPTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     private void OnTriggerEnter2D(Collider2D col)
@@ -120,11 +140,11 @@ public class CardPlayedManager : MonoBehaviour
     {
         if (!card.AoeTilemap)
         {
-            card.AoeTilemap = TilemapsManager.Instance.InstantiateTilemap(card.name + " aoe");
+            card.AoeTilemap = _tilemapsManager.InstantiateTilemap(card.name + " aoe");
             
             card.GetAvailableTiles(); 
         
-            card.DrawTilemap(card.AvailableTiles, card.AoeTilemap, TilemapsManager.Instance.GetRuleTile(card));
+            card.DrawTilemap(card.AvailableTiles, card.AoeTilemap, _tilemapsManager.GetRuleTile(card));
         }
     }
 
@@ -133,7 +153,7 @@ public class CardPlayedManager : MonoBehaviour
     /// </summary>
     public void HandlePlayedCard()
     {
-        UnitsManager.Instance.SelectedHero.CurrentMana -= _currentCard.ManaCost;
+        _unitsManager.SelectedHero.CurrentMana -= _currentCard.ManaCost;
         
         // Free the current card slot.
         _availableCardSlots[_currentCard.HandIndex] = true;
@@ -157,7 +177,7 @@ public class CardPlayedManager : MonoBehaviour
             
             foreach (var item in card.Path)
             {
-                var tile = GridManager.Instance.GetTileAtPosition(item.Key);
+                var tile = _gridManager.GetTileAtPosition(item.Key);
                 tile.Arrow.SetActive(false);
             }
         }

@@ -10,17 +10,23 @@ public class UnitsManager : MonoBehaviour
     private static UnitsManager _instance;
     public static UnitsManager Instance { get { return _instance; } }
 
-    private BaseHero _selectedHero;
-    
-    // TODO make a second list to store enemies. for now they are all in the same.
+    // Attributes ------------------------------------------------------------------------------------------------------
     private List<ScriptableUnit> _units;
 
     private List<BaseHero> _heroes;
+    private List<BaseEnemy> _enemies;
     
+    private BaseHero _selectedHero;
+    
+    // References ------------------------------------------------------------------------------------------------------
+    private GridManager _gridManager;
+    private UIBattleManager _uiBattleManager;
+
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public BaseHero SelectedHero { get => _selectedHero; set => _selectedHero = value; }
 
     public List<BaseHero> Heroes => _heroes;
+    public List<BaseEnemy> Enemies => _enemies;
 
     // -----------------------------------------------------------------------------------------------------------------
     private void Awake()
@@ -37,28 +43,18 @@ public class UnitsManager : MonoBehaviour
         _units = Resources.LoadAll<ScriptableUnit>("Units").ToList();
         
         _heroes = new List<BaseHero>();
-        
-        BattleManager.OnBattleStateChange += BattleManagerOnOnBattleStateChange;
+        _enemies = new List<BaseEnemy>();
     }
-
-    private void BattleManagerOnOnBattleStateChange(BattleState battleState)
-    {
-        if (battleState == BattleState.HEROES_TURN)
-        {
-            SetSelectedHero(_heroes[0]);
-        }
-        else if (battleState == BattleState.ENEMIES_TURN)
-        {
-            SetSelectedHero(null);
-        }
-    }
-
+    
     // Start is called before the first frame update
     void Start()
     {
+        _gridManager = GridManager.Instance;
+        _uiBattleManager = UIBattleManager.Instance;
+        
         // Instantiate the hero.
         var randomPrefab = GetRandomUnit<BaseHero>(Faction.Hero);
-        var spawnedHero = Instantiate(randomPrefab);
+        var spawnedHero = Instantiate(randomPrefab, new Vector3(7.5f, -10, 0), Quaternion.identity);
         _heroes.Add(spawnedHero);
     }
 
@@ -72,7 +68,7 @@ public class UnitsManager : MonoBehaviour
     {
         foreach (var hero in _heroes)
         {
-            var rndSpawnedTile = GridManager.Instance.GetHeroSpawnTile();
+            var rndSpawnedTile = _gridManager.GetHeroSpawnTile();
             hero.transform.position = rndSpawnedTile.transform.position;
             rndSpawnedTile.SetUnit(hero);
         }
@@ -91,9 +87,6 @@ public class UnitsManager : MonoBehaviour
         //     
         //     _heroes.Add(spawnedHero);
         // }
-        
-        //GameManager.Instance.UpdateGameState(GameState.SPAWN_ENEMIES);
-        BattleManager.Instance.UpdateBattleState(BattleState.SPAWN_ENEMIES);
     }
     
     public void SpawnEnemies()
@@ -104,16 +97,12 @@ public class UnitsManager : MonoBehaviour
         {
             var randomPrefab = GetRandomUnit<BaseEnemy>(Faction.Enemy);
             var spawnedEnemy = Instantiate(randomPrefab);
-            var randomSpawnTile = GridManager.Instance.GetEnemySpawnTile();
+            var randomSpawnTile = _gridManager.GetEnemySpawnTile();
             spawnedEnemy.transform.position = randomSpawnTile.transform.position;
             randomSpawnTile.SetUnit(spawnedEnemy);
+            _enemies.Add(spawnedEnemy);
         }
-        
-        //GameManager.Instance.UpdateGameState(GameState.BATTLE);
-        BattleManager.Instance.UpdateBattleState(BattleState.HEROES_TURN);
     }
-
-    
     
     private T GetRandomUnit<T>(Faction faction) where T : BaseUnit
     {
@@ -124,6 +113,6 @@ public class UnitsManager : MonoBehaviour
     public void SetSelectedHero(BaseHero hero)
     {
         _selectedHero = hero;
-        UIBattleManager.Instance.ShowSelectedHero(hero);
+        _uiBattleManager.ShowSelectedHero(hero);
     }
 }

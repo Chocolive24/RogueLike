@@ -13,7 +13,12 @@ public class BaseAttackCard : BaseCard
         _damage = damage;
     }
 
+    // Attributes ------------------------------------------------------------------------------------------------------
     [SerializeField] private int _damage;
+    
+    // References ------------------------------------------------------------------------------------------------------
+
+    // Methods ---------------------------------------------------------------------------------------------------------
     
     // Start is called before the first frame update
     protected override void Start()
@@ -30,10 +35,10 @@ public class BaseAttackCard : BaseCard
     
     public override void DrawTilemap(Dictionary<Vector3, int> availableNeighbours, Tilemap tilemap, RuleTile ruleTile)
     {
-        if (availableNeighbours.ContainsKey(GridManager.Instance.WorldTilemap.WorldToCell(
+        if (availableNeighbours.ContainsKey(_gridManager.WorldTilemap.WorldToCell(
                 GetStartingTile().transform.position)))
         {
-            availableNeighbours.Remove(GridManager.Instance.WorldTilemap.WorldToCell(
+            availableNeighbours.Remove(_gridManager.WorldTilemap.WorldToCell(
                 GetStartingTile().transform.position));
         }
         

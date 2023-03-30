@@ -12,17 +12,4 @@ public class ScriptableCard : ScriptableObject
     // Getters and Setters --------------------------------------------------------------------------
     public Rarety Rarety => _rarety;
     public BaseCard BaseCardPrefab => _baseCardPrefab;
-    
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

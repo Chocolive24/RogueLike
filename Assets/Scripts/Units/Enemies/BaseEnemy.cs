@@ -1,28 +1,28 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
 public class BaseEnemy : BaseUnit
 {
+    // Attributes ------------------------------------------------------------------------------------------------------
     [SerializeField] private int _distanceFromThePlayer;
-
-    //private List<TileCell> _inRangeTiles;
-    //private List<TileCell> _walkableInRangeTiles;
-
+    
     private Dictionary<Vector3, int> _availableTiles;
 
     private Tilemap _movementTilemap;
 
     private bool _isSelected = false;
+    protected bool _hasFinishedTheTurn = false;
 
+    // References ------------------------------------------------------------------------------------------------------
+    private TilemapsManager _tilemapsManager;
+    
     // Getters and Setters ---------------------------------------------------------------------------------------------
-    // public List<TileCell> InRangeTiles
-    // {
-    //     get => _inRangeTiles;
-    //     set => _inRangeTiles = value;
-    // }
+
+    #region Getters and Setters
 
     public Dictionary<Vector3, int> AvailableTiles
     {
@@ -42,31 +42,47 @@ public class BaseEnemy : BaseUnit
         set => _isSelected = value;
     }
 
-    // -----------------------------------------------------------------------------------------------------------------
+    public bool HasFinishedTheTurn
+    {
+        get => _hasFinishedTheTurn;
+        set => _hasFinishedTheTurn = value;
+    }
+
+    #endregion
     
+    // Methods ---------------------------------------------------------------------------------------------------------
     private void Awake()
     {
         _availableTiles = new Dictionary<Vector3, int>();
     }
 
-    // Start is called before the first frame update
-    void Start()
+    protected override void Start()
     {
-        
+        base.Start();
+        _tilemapsManager = TilemapsManager.Instance;
     }
 
-    // Update is called once per frame
-    void Update()
+    public void FindPathToTarget(Vector3 targetPos)
     {
-        
+        _path = _tilemapsManager.FindPath(transform.position, targetPos);
+
+        _path.Remove(_path.Last());
+
+        _targetPos = _path.First();
     }
 
-    private void OnDestroy()
+    protected override void Update()
     {
-        // foreach (var tile in _availableTilesContainer)
-        // {
-        //     Destroy(tile.gameObject);
-        // }
+        base.Update();
+
+        if (transform.position == _targetPos)
+        {
+            _hasFinishedTheTurn = true;
+        }
+        else
+        {
+            _hasFinishedTheTurn = false;
+        }
     }
 
     public int CalculateDistanceFromThePlayer()
@@ -88,5 +104,4 @@ public class BaseEnemy : BaseUnit
         return (int)(Mathf.Abs(transform.position.x - playerPos.x) + 
                      Mathf.Abs((transform.position.y - playerPos.y)));
     }
-           
 }

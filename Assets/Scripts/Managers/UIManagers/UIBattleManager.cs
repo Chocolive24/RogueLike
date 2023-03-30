@@ -9,17 +9,42 @@ using Image = UnityEngine.UI.Image;
 
 public class UIBattleManager : MonoBehaviour
 {
+    // Singleton -------------------------------------------------------------------------------------------------------
+    #region Singleton
+
     private static UIBattleManager _instance;
     public static UIBattleManager Instance { get { return _instance; } }
 
+    #endregion
+    
+    // References ------------------------------------------------------------------------------------------------------
+    #region UIGameobjects
     [SerializeField] private GameObject _battlePanel;
     [SerializeField] private Button _endTurnButton;
     [SerializeField] private TextMeshProUGUI _currentTurnTxt;
     [SerializeField] private TextMeshProUGUI _notEnoughManaTxt;
     [SerializeField] private TextMeshProUGUI _manaNbrTxt;
     [SerializeField] private GameObject _selectedHeroObject, _tileObject, _tileUnitObject;
-    
+    #endregion
 
+    #region Managers
+
+    private BattleManager _battleManager;
+    private CardPlayedManager _cardPlayedManager;
+    private UnitsManager _unitsManager;
+
+    #endregion
+    
+    // Getters and Setters ---------------------------------------------------------------------------------------------
+    #region Getters and Setters
+
+    public GameObject BattlePanel { get => _battlePanel; set => _battlePanel = value; }
+
+    public Button EndTurnButton => _endTurnButton;
+
+    #endregion
+    
+    // Methods ---------------------------------------------------------------------------------------------------------
     private void Awake()
     {
         if (_instance != null && _instance != this)
@@ -33,63 +58,48 @@ public class UIBattleManager : MonoBehaviour
         
         _battlePanel.SetActive(false);
         _notEnoughManaTxt.gameObject.SetActive(false);
-        
-        GameManager.OnGameStateChange += GameManagerOnOnGameStateChange;
-        BattleManager.OnBattleStateChange += BattleManagerOnOnBattleStateChange;
-    }
-
-    private void GameManagerOnOnGameStateChange(GameState gameState)
-    {
-        _battlePanel.SetActive(gameState == GameState.BATTLE);
-        Debug.Log(gameState);
     }
     
-    private void BattleManagerOnOnBattleStateChange(BattleState battleState)
-    {
-        _endTurnButton.interactable = battleState == BattleState.HEROES_TURN;
-    }
-
+    
     private void OnDestroy()
     {
-        GameManager.OnGameStateChange -= GameManagerOnOnGameStateChange;
-        BattleManager.OnBattleStateChange -= BattleManagerOnOnBattleStateChange;
+        
     }
     
     // Start is called before the first frame update
     void Start()
     {
-        
+        _battleManager = BattleManager.Instance;
+        _cardPlayedManager = CardPlayedManager.Instance;
+        _unitsManager = UnitsManager.Instance;
     }
 
     // Update is called once per frame
     void Update()
     {
-        _currentTurnTxt.text = BattleManager.Instance.State.ToString();
-        
-        if (UnitsManager.Instance.SelectedHero)
+        if (_unitsManager.SelectedHero)
         {
-            if (!CardPlayedManager.Instance.HasACardOnIt)
+            if (!_cardPlayedManager.HasACardOnIt)
             {
-                _manaNbrTxt.text = UnitsManager.Instance.SelectedHero.CurrentMana.ToString() + " / " +
-                                   UnitsManager.Instance.SelectedHero.MaxMana.ToString();
+                _manaNbrTxt.text = _unitsManager.SelectedHero.CurrentMana.ToString() + " / " +
+                                   _unitsManager.SelectedHero.MaxMana.ToString();
             }
             else
             {
-                _manaNbrTxt.text = UnitsManager.Instance.SelectedHero.CurrentMana.ToString() + " / " +
-                                   UnitsManager.Instance.SelectedHero.MaxMana.ToString();
+                _manaNbrTxt.text = _unitsManager.SelectedHero.CurrentMana.ToString() + " / " +
+                                   _unitsManager.SelectedHero.MaxMana.ToString();
             }
         }
     }
 
     public void EndTheTurn()
     {
-        //GameManager.Instance.UpdateGameState(GameState.EnemiesTurn);
-        BattleManager.Instance.UpdateBattleState(BattleState.ENEMIES_TURN);
+        _battleManager.IsPlayerTurn = false;
     }
     
     public void ShowSelectedHero(BaseHero hero)
     {
-        if (hero == null)
+        if (!hero)
         {
             _selectedHeroObject.SetActive(false);
             return;
@@ -118,7 +128,8 @@ public class UIBattleManager : MonoBehaviour
 
             if (tile.OccupiedUnit.GetComponent<BaseEnemy>())
             {
-                tileUnitObjTxt += "\n dist. " + tile.OccupiedUnit.GetComponent<BaseEnemy>().CalculateDistanceFromThePlayer();
+                tileUnitObjTxt += "\n dist. " + 
+                                  tile.OccupiedUnit.GetComponent<BaseEnemy>().CalculateDistanceFromThePlayer();
             }
 
             _tileUnitObject.GetComponentInChildren<TextMeshProUGUI>().text = tileUnitObjTxt;

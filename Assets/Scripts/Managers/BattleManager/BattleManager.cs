@@ -4,28 +4,51 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public enum BattleState
-{
-    GENERATE_GRID = 0,
-    SPAWN_HEROES,
-    SPAWN_ENEMIES,
-    HEROES_TURN,
-    ENEMIES_TURN,
-    VICTORY,
-    DEFEAT,
-}
-
 public class BattleManager : MonoBehaviour
 {
+    // Singleton -------------------------------------------------------------------------------------------------------
     private static BattleManager _instance;
     public static BattleManager Instance { get { return _instance; } }
-
-    private BattleState _state;
     
-    public static event Action<BattleState> OnBattleStateChange; 
+    // Attributes ------------------------------------------------------------------------------------------------------
+    private bool _isPlayerTurn;
+    
+    // References ------------------------------------------------------------------------------------------------------
 
-    public BattleState State => _state;
+    #region Managers
 
+    private GameManager _gameManager;
+    private GridManager _gridManager;
+    private UnitsManager _unitsManager;
+    private UIBattleManager _uiBattleManager;
+
+    #endregion
+    
+    // State Pattern ---------------------------------------------------------------------------------------------------
+    
+    #region Battle States
+
+    private HeroesTurnBattleState _heroesTurnBattleState;
+    private EnemiesTurnBattleState _enemiesTurnBattleState;
+    private VictoryBattleState _victoryBattleState;
+    private DefeatBattleState _defeatBattleState;
+
+    #endregion
+    
+    // State Machine
+    private StateMachine _stateMachine;
+    
+    // Public Methods --------------------------------------------------------------------------------------------------
+
+    #region Getters and Setters
+    
+    public bool IsPlayerTurn { get => _isPlayerTurn; set => _isPlayerTurn = value; }
+    
+    public StateMachine StateMachine => _stateMachine;
+
+    #endregion
+    
+    // Methods ---------------------------------------------------------------------------------------------------------
     private void Awake()
     {
         if (_instance != null && _instance != this)
@@ -41,73 +64,89 @@ public class BattleManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        ReferenceManagers();
+
+        CreateStatePattern();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void ReferenceManagers()
     {
-        
+        _gameManager = GameManager.Instance;
+        _gridManager = GridManager.Instance;
+        _unitsManager = UnitsManager.Instance;
+        _uiBattleManager = UIBattleManager.Instance;
     }
 
-    public void UpdateBattleState(BattleState newState)
+    private void CreateStatePattern()
     {
-        _state = newState;
-
-        switch (newState)
-        {
-            case BattleState.GENERATE_GRID:
-                GridManager.Instance.GenerateGrid();
-                break;
-            case BattleState.SPAWN_HEROES:
-                UnitsManager.Instance.SpawnHeroes();
-                break;
-            case BattleState.SPAWN_ENEMIES:
-                UnitsManager.Instance.SpawnEnemies();
-                break;
-            case BattleState.HEROES_TURN:
-                HandleHeroesTurn();
-                break;
-            case BattleState.ENEMIES_TURN:
-                HandleEnemiesTurn();
-                break;
-            case BattleState.VICTORY:
-                break;
-            case BattleState.DEFEAT:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
-        }
+        _heroesTurnBattleState = new HeroesTurnBattleState(this, _uiBattleManager);
+        _enemiesTurnBattleState = new EnemiesTurnBattleState();
+        _victoryBattleState = new VictoryBattleState(_gameManager);
+        _defeatBattleState = new DefeatBattleState();
         
-        OnBattleStateChange?.Invoke(newState);
-    }
+        _stateMachine = new StateMachine();
 
+        _stateMachine.AddTransition(_heroesTurnBattleState, _enemiesTurnBattleState,
+            () => !_isPlayerTurn);
+        _stateMachine.AddTransition(_enemiesTurnBattleState, _heroesTurnBattleState,
+            () => _unitsManager.Enemies[0].HasFinishedTheTurn);
+        _stateMachine.AddTransition(_heroesTurnBattleState, _victoryBattleState, 
+            () => _unitsManager.Enemies.Count == 0);
+        _stateMachine.AddTransition(_enemiesTurnBattleState, _victoryBattleState, 
+            () => _unitsManager.Enemies.Count == 0);
+    }
     
     public void StartBattle()
     {
-        UpdateBattleState(BattleState.GENERATE_GRID);
-        UpdateBattleState(BattleState.HEROES_TURN);
+        _gridManager.GenerateGrid();
+        _unitsManager.SpawnHeroes();
+        _unitsManager.SpawnEnemies();
 
-        Debug.Log(State);
+        _isPlayerTurn = true;
+        
+        _uiBattleManager.BattlePanel.SetActive(true);
+        
+        _stateMachine.SetState(_heroesTurnBattleState);
+    }
+
+    public void EndBattle()
+    {
+        _uiBattleManager.BattlePanel.SetActive(false);
     }
     
-    private void HandleHeroesTurn()
+    public void EnterHeroesTurn()
     {
-        foreach (var hero in UnitsManager.Instance.Heroes)
+        _isPlayerTurn = true;
+        
+        _uiBattleManager.EndTurnButton.interactable = true;
+        
+        _unitsManager.SetSelectedHero(_unitsManager.Heroes[0]);
+        
+        foreach (var hero in _unitsManager.Heroes)
         {
             hero.CurrentMana = hero.MaxMana;
         }
     }
-    
-    private void HandleEnemiesTurn()
+
+    public void ExitHeroesTurn()
     {
-        StartCoroutine(TmpEnemyCo());
+        _uiBattleManager.EndTurnButton.interactable = false;
+        
+        _unitsManager.SetSelectedHero(null);
+    }
+    
+    public void HandleEnemiesTurn()
+    {
+        _unitsManager.Enemies[0].FindPathToTarget(_unitsManager.Heroes[0].transform.position);
+        
+
+        //StartCoroutine(TmpEnemyCo());
     }
 
-    private IEnumerator TmpEnemyCo()
+    public IEnumerator TmpEnemyCo()
     {
         yield return new WaitForSeconds(1f);
-        
-        UpdateBattleState(BattleState.HEROES_TURN);
+
+        _isPlayerTurn = true;
     }
 }
