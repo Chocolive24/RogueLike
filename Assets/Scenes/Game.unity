@@ -973,6 +973,10 @@ PrefabInstance:
       propertyPath: _carNbrTxt
       value: 
       objectReference: {fileID: 1575698021}
+    - target: {fileID: 2533663722260597781, guid: 351b473b26553a746ab87502c27d4501, type: 3}
+      propertyPath: _basicMoveCardNbr
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7202353074825681219, guid: 351b473b26553a746ab87502c27d4501, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -5080,8 +5084,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _width: 16
   _height: 9
-  _ground: {fileID: 3685091748198479030, guid: d6711e980680ef845883716fc25b4c37, type: 3}
-  _wall: {fileID: -2386249951156247068, guid: d0fd3de3e7a2b8d46a6116ea3abade90, type: 3}
   _camTrans: {fileID: 519420032}
   _worldTilemap: {fileID: 2131282185}
   _groundRuleTile: {fileID: 11400000, guid: 58e28f01c75579a4bad6b16d48f78a11, type: 2}

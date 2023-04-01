@@ -69,6 +69,17 @@ public abstract class BaseCard : MonoBehaviour
     protected Dictionary<Vector3, int> _availableTiles;
 
     #endregion
+
+    #region State Pattern Attributes
+
+    protected StateMachine _stateMachine;
+
+    protected InDeckCardState _inDeckCardState;
+    protected DrawnCardState _drawnCardState;
+    protected PerfomCardState _perfomCardState;
+    protected DiscardedCardState _discardedCardState;
+
+    #endregion
     
     protected int _handIndex;
 
@@ -140,6 +151,8 @@ public abstract class BaseCard : MonoBehaviour
     protected virtual void Start()
     {
         ReferenceManagers();
+        
+        CreateStatePattern();
     }
 
     private void ReferenceManagers()
@@ -151,9 +164,27 @@ public abstract class BaseCard : MonoBehaviour
         _unitsManager = UnitsManager.Instance;
     }
 
+    private void CreateStatePattern()
+    {
+        _inDeckCardState = new InDeckCardState();
+        _drawnCardState = new DrawnCardState();
+        _perfomCardState = new PerfomCardState();
+        _discardedCardState = new DiscardedCardState();
+
+        _stateMachine = new StateMachine();
+
+        _stateMachine.AddTransition(_inDeckCardState, _drawnCardState, () => gameObject.activeSelf);
+        _stateMachine.AddTransition(_drawnCardState, _perfomCardState, () => CheckIfCanBePlayed());
+        _stateMachine.AddTransition(_perfomCardState, _inDeckCardState, () => !gameObject.activeSelf);
+        
+        _stateMachine.SetState(_inDeckCardState);
+    }
+    
     // Update is called once per frame
     protected virtual void Update()
     {
+        _stateMachine.Tick();
+        
         _manaNbrTxt.text = _manaCost.ToString();
     }   
     

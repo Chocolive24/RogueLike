@@ -8,18 +8,16 @@ using UnityEngine.Tilemaps;
 public class BaseEnemy : BaseUnit
 {
     // Attributes ------------------------------------------------------------------------------------------------------
-    [SerializeField] private int _distanceFromThePlayer;
-    
-    private Dictionary<Vector3, int> _availableTiles;
-
     private Tilemap _movementTilemap;
 
     private bool _isSelected = false;
     protected bool _hasFinishedTheTurn = false;
 
-    // References ------------------------------------------------------------------------------------------------------
-    private TilemapsManager _tilemapsManager;
     
+    // References ------------------------------------------------------------------------------------------------------
+
+    // Events ----------------------------------------------------------------------------------------------------------
+
     // Getters and Setters ---------------------------------------------------------------------------------------------
 
     #region Getters and Setters
@@ -53,55 +51,46 @@ public class BaseEnemy : BaseUnit
     // Methods ---------------------------------------------------------------------------------------------------------
     private void Awake()
     {
-        _availableTiles = new Dictionary<Vector3, int>();
+        
     }
 
     protected override void Start()
     {
         base.Start();
-        _tilemapsManager = TilemapsManager.Instance;
     }
 
-    public void FindPathToTarget(Vector3 targetPos)
-    {
-        _path = _tilemapsManager.FindPath(transform.position, targetPos);
-
-        _path.Remove(_path.Last());
-
-        _targetPos = _path.First();
-    }
+    
 
     protected override void Update()
     {
         base.Update();
 
-        if (transform.position == _targetPos)
+        // if (transform.position == _targetPos)
+        // {
+        //     _hasFinishedTheTurn = true;
+        // }
+        // else
+        // {
+        //     _hasFinishedTheTurn = false;
+        // }
+    }
+
+    public override void FindAvailablePathToTarget(Vector3 targetPos)
+    {
+        _availableTiles = _tilemapsManager.GetAvailableTiles(transform.position, _movement, this.gameObject);
+        
+        base.FindAvailablePathToTarget(targetPos);
+
+        if (_path.Count > 1)
         {
-            _hasFinishedTheTurn = true;
+            _path.Remove(_path.Last());
         }
-        else
-        {
-            _hasFinishedTheTurn = false;
-        }
+        
     }
 
     public int CalculateDistanceFromThePlayer()
     {
-        Vector3 playerPos = Vector3.zero;
-        
-        foreach (var item in GridManager.Instance.Tiles)
-        {
-            if (item.Value.OccupiedUnit != null)
-            {
-                // TODO need to work with every hero.
-                if (item.Value.OccupiedUnit.GetComponent<Hero1>())
-                {
-                    playerPos = item.Key;
-                }
-            }
-        }
-
-        return (int)(Mathf.Abs(transform.position.x - playerPos.x) + 
-                     Mathf.Abs((transform.position.y - playerPos.y)));
+        _path = _tilemapsManager.FindPath(transform.position, _unitsManager.SelectedHero.transform.position);
+        return _path.Count;
     }
 }

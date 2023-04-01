@@ -217,7 +217,6 @@ public class TilemapsManager : MonoBehaviour
 
         while (currentPos != startPos)
         {
-            Debug.Log(currentPos);
             finishedList.Add(currentPos);
             currentPos = _gridManager.GetTileAtPosition(currentPos).PreviousTilePos;
         }

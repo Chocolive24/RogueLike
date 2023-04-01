@@ -140,7 +140,7 @@ public class TileCell : MonoBehaviour
 
                 card.Path = _tilemapsManager.FindPathWithinRange(_position, card.AvailableTiles);
         
-                _unitsManager.SelectedHero.Path = card.Path;
+                _unitsManager.SelectedHero.Path = card.Path.Keys.ToList();
 
                 List<TileCell> pathTiles = new List<TileCell>();
                 
@@ -244,7 +244,7 @@ public class TileCell : MonoBehaviour
                 // and it is walkable.
                 if (_cardPlayedManager.CurrentCard.AvailableTiles.ContainsKey(this.Position) && Walkable)
                 {
-                    _unitsManager.SelectedHero.HandleBattleMove();
+                    _unitsManager.SelectedHero.FindAvailablePathToTarget(transform.position);
                     SetUnit(_unitsManager.SelectedHero);
                     //UnitsManager.Instance.SetSelectedHero(null);
                     _cardPlayedManager.HandlePlayedCard();

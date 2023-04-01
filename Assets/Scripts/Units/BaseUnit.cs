@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class BaseUnit : MonoBehaviour
@@ -25,13 +26,20 @@ public class BaseUnit : MonoBehaviour
     [SerializeField] protected float _speed = 8f;
     
     protected Vector3? _targetPos = null;
-    //protected Dictionary<Vector3, int> _path;
+    protected Dictionary<Vector3, int> _availableTiles;
     protected List<Vector3> _path;
     protected int _currentTargetIndex = 0;
+
+    protected List<Vector3> _avalaiblePath;
     
     // References ------------------------------------------------------------------------------------------------------
     protected GameManager _gameManager;
     protected GridManager _gridManager;
+    protected TilemapsManager _tilemapsManager;
+    protected UnitsManager _unitsManager;
+
+    // Events ----------------------------------------------------------------------------------------------------------
+    public event Action OnTurnFinished; 
     
     // Getters and Setters ---------------------------------------------------------------------------------------------
 
@@ -54,16 +62,25 @@ public class BaseUnit : MonoBehaviour
         set => _targetPos = value;
     }
 
+    public List<Vector3> Path
+    {
+        get => _path;
+        set => _path = value;
+    }
+
     #endregion
 
     // Methods ---------------------------------------------------------------------------------------------------------
-
     protected virtual void Start()
     {
+        _availableTiles = new Dictionary<Vector3, int>();
         _path = new List<Vector3>();
+        _avalaiblePath = new List<Vector3>();
         
         _gameManager = GameManager.Instance;
         _gridManager = GridManager.Instance;
+        _tilemapsManager = TilemapsManager.Instance;
+        _unitsManager = UnitsManager.Instance;
     }
 
     protected virtual void Update()
@@ -71,6 +88,23 @@ public class BaseUnit : MonoBehaviour
         MoveOnGrid();
     }
 
+    public virtual void FindAvailablePathToTarget(Vector3 targetPos)
+    {
+        _path = _tilemapsManager.FindPath(transform.position, targetPos);
+        
+        // If the enemy is already near the player, there would be no path, so we don't need to move the enemy.
+        if (_path.Count > 0)
+        {
+            _avalaiblePath = _availableTiles.Keys.Intersect(_path).ToList();
+        
+            _targetPos = _avalaiblePath.First();
+        }
+        else
+        {
+            _targetPos = transform.position;
+        }
+    }
+    
     protected virtual void MoveOnGrid()
     {
         if (_targetPos.HasValue)
@@ -97,17 +131,19 @@ public class BaseUnit : MonoBehaviour
 
     protected virtual void FollowThePath()
     {
-        if (_currentTargetIndex < _path.Count) 
+        if (_currentTargetIndex < _avalaiblePath.Count) 
         {
-            _targetPos = _gridManager.WorldToCellCenter(_path[_currentTargetIndex]);
+            _targetPos = _gridManager.WorldToCellCenter(_avalaiblePath[_currentTargetIndex]);
             _currentTargetIndex++;
         }
         else
         { 
+            OnTurnFinished?.Invoke();
             _gridManager.GetTileAtPosition(transform.position).SetUnit(this);
             _targetPos = null;
             _currentTargetIndex = 0;
             _path.Clear();
+            _avalaiblePath.Clear();
         }
     }
 

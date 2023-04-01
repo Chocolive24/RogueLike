@@ -17,13 +17,21 @@ public class UnitsManager : MonoBehaviour
     private List<BaseEnemy> _enemies;
     
     private BaseHero _selectedHero;
-    
+    private BaseEnemy _currentEnemyPlaying;
+
+    private int _enemyCount = 0;
+
     // References ------------------------------------------------------------------------------------------------------
     private GridManager _gridManager;
     private UIBattleManager _uiBattleManager;
-
+    
+    // Events ----------------------------------------------------------------------------------------------------------
+    public static event Action OnEnemiesTurnEnd;
+    
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public BaseHero SelectedHero { get => _selectedHero; set => _selectedHero = value; }
+
+    public BaseEnemy CurrentEnemyPlaying { get => _currentEnemyPlaying; set => _currentEnemyPlaying = value; }
 
     public List<BaseHero> Heroes => _heroes;
     public List<BaseEnemy> Enemies => _enemies;
@@ -44,8 +52,12 @@ public class UnitsManager : MonoBehaviour
         
         _heroes = new List<BaseHero>();
         _enemies = new List<BaseEnemy>();
+        
+        
     }
+
     
+
     // Start is called before the first frame update
     void Start()
     {
@@ -91,7 +103,7 @@ public class UnitsManager : MonoBehaviour
     
     public void SpawnEnemies()
     {
-        var enemyCount = 1;
+        var enemyCount = 3;
 
         for (int i = 0; i < enemyCount; i++)
         {
@@ -101,9 +113,26 @@ public class UnitsManager : MonoBehaviour
             spawnedEnemy.transform.position = randomSpawnTile.transform.position;
             randomSpawnTile.SetUnit(spawnedEnemy);
             _enemies.Add(spawnedEnemy);
+            
+            spawnedEnemy.OnTurnFinished += SpawnedEnemyOnOnTurnFinished;
         }
     }
-    
+
+    private void SpawnedEnemyOnOnTurnFinished()
+    {
+        Debug.Log("je suis dedans la ");
+        if (_enemyCount < _enemies.Count - 1)
+        {
+            _enemyCount++;
+            _currentEnemyPlaying = _enemies[_enemyCount];
+        }
+        else
+        {
+            OnEnemiesTurnEnd?.Invoke();
+            _enemyCount = 0;
+        }
+    }
+
     private T GetRandomUnit<T>(Faction faction) where T : BaseUnit
     {
         return (T)_units.Where(u => u.Faction == faction).OrderBy

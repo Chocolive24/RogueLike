@@ -34,20 +34,21 @@ public class BaseHero : BaseUnit
 
     #endregion
 
-    #region Pathfinding Attributes
-
-    protected Vector3? _targetPos1 = null;
-    protected Dictionary<Vector3, int> _path1;
-    protected List<Vector3> _pathPositions1;
-    protected int _currentTargetIndex1 = 0;
-
-    #endregion
+    // #region Pathfinding Attributes
+    //
+    // protected Vector3? _targetPos1 = null;
+    // protected Dictionary<Vector3, int> _path1;
+    // protected List<Vector3> _pathPositions1;
+    // protected int _currentTargetIndex1 = 0;
+    //
+    // #endregion
     
     protected int _currentMana;
     
     // References ------------------------------------------------------------------------------------------------------
     // private GameManager _gameManager;
     // private GridManager _gridManager;
+    private CardPlayedManager _cardPlayedManager;
     
     // Getters and Setters ---------------------------------------------------------------------------------------------
 
@@ -61,11 +62,11 @@ public class BaseHero : BaseUnit
         set => _currentMana = value;
     }
 
-    public Dictionary<Vector3, int> Path
-    {
-        get => _path1;
-        set => _path1 = value;
-    }
+    // public Dictionary<Vector3, int> Path
+    // {
+    //     get => _path1;
+    //     set => _path1 = value;
+    // }
     
     #endregion
     
@@ -74,60 +75,67 @@ public class BaseHero : BaseUnit
     private void Awake()
     {
         GameManager.OnGameStateChange += GameManagerOnOnGameStateChange;
-
-        _pathPositions1 = new List<Vector3>();
     }
 
     private void GameManagerOnOnGameStateChange()
     {
-        _targetPos1 = null;
+        _targetPos = null;
     }
 
     // Start is called before the first frame update
     protected override void Start()
     {
         base.Start();
+        _cardPlayedManager = CardPlayedManager.Instance;
+        
         
         InitializeDecks();
         
-        // _gameManager1 = GameManager.Instance;
-        // _gridManager1 = GridManager.Instance;
-
         _currentMana = _maxMana;
     }
 
     // Update is called once per frame
-    protected void Update()
+    protected override void Update()
     {
-        HandleMove();
+        _speed = _gameManager.IsInBattleState ? _battleSpeed : _exploreSpeed;
+        
+        base.Update();
         
         HandleShuffleCardsBackToDeck();
     }
-    
+
+    public override void FindAvailablePathToTarget(Vector3 targetPos)
+    {
+        _availableTiles = _cardPlayedManager.CurrentCard.AvailableTiles;
+        base.FindAvailablePathToTarget(targetPos);
+    }
+
     private void HandleMove()
     {
-        if (_targetPos1.HasValue)
-        {
-            float speed = _gameManager.IsInBattleState ? _battleSpeed : _exploreSpeed;
-
-            // Move the player to the target position
-            transform.position = Vector3.MoveTowards(transform.position, _targetPos1.Value,
-                speed * Time.deltaTime);
-
-            // The distance between the player and the target point would never be exactly equal to 0.
-            // So we check with an Epsilon value if the player as reached the target position.
-            // Then we set his position to the target position in order to be precise.
-            if (Vector3.Distance(transform.position, _targetPos1.Value) <= 0.01f)
-            {
-                transform.position = _targetPos1.Value;
-                _targetPos1 = null;
-
-                if (_gameManager.IsInBattleState)
-                {
-                    HandleBattleMove();
-                }
-            }
-        }
+        
+        
+        // if (_targetPos1.HasValue)
+        // {
+        //     float speed = _gameManager.IsInBattleState ? _battleSpeed : _exploreSpeed;
+        //
+        //     // Move the player to the target position
+        //     transform.position = Vector3.MoveTowards(transform.position, _targetPos1.Value,
+        //         speed * Time.deltaTime);
+        //
+        //     // The distance between the player and the target point would never be exactly equal to 0.
+        //     // So we check with an Epsilon value if the player as reached the target position.
+        //     // Then we set his position to the target position in order to be precise.
+        //     if (Vector3.Distance(transform.position, _targetPos1.Value) <= 0.01f)
+        //     {
+        //         transform.position = _targetPos1.Value;
+        //         _targetPos1 = null;
+        //
+        //         if (_gameManager.IsInBattleState)
+        //         {
+        //             HandleBattleMove();
+        //         }
+        //     }
+        // }
     }
 
     private void HandleShuffleCardsBackToDeck()
@@ -186,33 +194,33 @@ public class BaseHero : BaseUnit
             {
                 Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
-                _targetPos1 = new Vector3(mousePos.x, mousePos.y, 0);
+                _targetPos = new Vector3(mousePos.x, mousePos.y, 0);
             }
         }
     }
 
-    public void HandleBattleMove()
-    {
-        if (_pathPositions1.Count == 0)
-        {
-            foreach (var item in _path1)
-            {
-                _pathPositions1.Add(item.Key);
-            }
-            
-            _pathPositions1.Reverse();
-        }
-        
-        if (_currentTargetIndex1 < _pathPositions1.Count) 
-        {
-            _targetPos1 = _gridManager.WorldToCellCenter(_pathPositions1[_currentTargetIndex1]);
-            _currentTargetIndex1++;
-        }
-        else
-        {
-            _targetPos1 = null;
-            _currentTargetIndex1 = 0;
-            _pathPositions1.Clear();
-        }
-    }
+    // public void HandleBattleMove()
+    // {
+    //     if (_pathPositions1.Count == 0)
+    //     {
+    //         foreach (var item in _path1)
+    //         {
+    //             _pathPositions1.Add(item.Key);
+    //         }
+    //         
+    //         _pathPositions1.Reverse();
+    //     }
+    //     
+    //     if (_currentTargetIndex1 < _pathPositions1.Count) 
+    //     {
+    //         _targetPos1 = _gridManager.WorldToCellCenter(_pathPositions1[_currentTargetIndex1]);
+    //         _currentTargetIndex1++;
+    //     }
+    //     else
+    //     {
+    //         _targetPos1 = null;
+    //         _currentTargetIndex1 = 0;
+    //         _pathPositions1.Clear();
+    //     }
+    // }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -59,8 +60,15 @@ public class BattleManager : MonoBehaviour
         {
             _instance = this;
         }
+        
+        UnitsManager.OnEnemiesTurnEnd += UnitsManagerOnOnEnemiesTurnEnd;
     }
-    
+
+    private void UnitsManagerOnOnEnemiesTurnEnd()
+    {
+        _isPlayerTurn = true;
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -89,7 +97,7 @@ public class BattleManager : MonoBehaviour
         _stateMachine.AddTransition(_heroesTurnBattleState, _enemiesTurnBattleState,
             () => !_isPlayerTurn);
         _stateMachine.AddTransition(_enemiesTurnBattleState, _heroesTurnBattleState,
-            () => _unitsManager.Enemies[0].HasFinishedTheTurn);
+            () => _isPlayerTurn);
         _stateMachine.AddTransition(_heroesTurnBattleState, _victoryBattleState, 
             () => _unitsManager.Enemies.Count == 0);
         _stateMachine.AddTransition(_enemiesTurnBattleState, _victoryBattleState, 
@@ -134,12 +142,22 @@ public class BattleManager : MonoBehaviour
         
         _unitsManager.SetSelectedHero(null);
     }
+
+    public void StartEnemiesTurn()
+    {
+        _unitsManager.CurrentEnemyPlaying = _unitsManager.Enemies[0];
+    }
     
     public void HandleEnemiesTurn()
     {
-        _unitsManager.Enemies[0].FindPathToTarget(_unitsManager.Heroes[0].transform.position);
+        Debug.Log(_unitsManager.CurrentEnemyPlaying.Path.Count);
+        if (_unitsManager.CurrentEnemyPlaying.Path.Count == 0)
+        {
+            Debug.Log("FIND PATH");
+            _unitsManager.CurrentEnemyPlaying.FindAvailablePathToTarget(_unitsManager.Heroes[0].transform.position);
+        }
         
-
+        
         //StartCoroutine(TmpEnemyCo());
     }
 

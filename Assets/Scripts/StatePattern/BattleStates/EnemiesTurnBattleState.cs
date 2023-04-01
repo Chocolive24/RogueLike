@@ -6,17 +6,20 @@ public class EnemiesTurnBattleState : IState
 {
     public void OnEnter()
     {
+        BattleManager.Instance.StartEnemiesTurn();
         Debug.Log("Enter Enemy");
-        BattleManager.Instance.HandleEnemiesTurn();
+        
     }
 
     public void OnExit()
     {
+        
         Debug.Log("Exit Enemy");
     }
 
     public void Tick()
     {
+        BattleManager.Instance.HandleEnemiesTurn();
         Debug.Log("Tick Enemy");
     }
 }
