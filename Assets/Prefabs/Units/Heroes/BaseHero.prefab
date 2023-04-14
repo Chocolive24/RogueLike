@@ -63,6 +63,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7787486916287909446, guid: d705e8e0b34a66c45b924ccfe455bce1, type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787486916287909446, guid: d705e8e0b34a66c45b924ccfe455bce1, type: 3}
+      propertyPath: m_Color.r
+      value: 0.1292665
+      objectReference: {fileID: 0}
+    - target: {fileID: 7787486916287909446, guid: d705e8e0b34a66c45b924ccfe455bce1, type: 3}
+      propertyPath: m_FillAmount
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8607855869782897736, guid: d705e8e0b34a66c45b924ccfe455bce1, type: 3}
       propertyPath: m_Name
       value: BaseHero
@@ -89,12 +101,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _unitName: 
   _faction: 0
-  _hp: 0
+  _maxHP: 100
   _attack: 0
   _shield: 0
   _movement: 0
-  _movementDeck: {fileID: 0}
-  _mainDeck: {fileID: 0}
+  _speed: 8
   _heroClass: 0
   _maxMana: 0
   _exploreSpeed: 10

@@ -12,11 +12,11 @@ public class UnitsManager : MonoBehaviour
 
     // Attributes ------------------------------------------------------------------------------------------------------
     private List<ScriptableUnit> _units;
+    private List<ScriptableUnit> _enemiesData;
 
     private List<BaseHero> _heroes;
     private List<BaseEnemy> _enemies;
     
-    private BaseHero _selectedHero;
     private BaseEnemy _currentEnemyPlaying;
 
     private int _enemyCount = 0;
@@ -24,12 +24,15 @@ public class UnitsManager : MonoBehaviour
     // References ------------------------------------------------------------------------------------------------------
     private GridManager _gridManager;
     private UIBattleManager _uiBattleManager;
-    
+
+    [SerializeField] private AI_TypeSO _aiTypeSO;
+    private float _betweenTurnsTime = 0.5f;
+
     // Events ----------------------------------------------------------------------------------------------------------
     public static event Action OnEnemiesTurnEnd;
     
     // Getters and Setters ---------------------------------------------------------------------------------------------
-    public BaseHero SelectedHero { get => _selectedHero; set => _selectedHero = value; }
+    public BaseHero HeroPlayer => _heroes[0];
 
     public BaseEnemy CurrentEnemyPlaying { get => _currentEnemyPlaying; set => _currentEnemyPlaying = value; }
 
@@ -49,6 +52,7 @@ public class UnitsManager : MonoBehaviour
         }
 
         _units = Resources.LoadAll<ScriptableUnit>("Units").ToList();
+        _enemiesData = Resources.LoadAll<ScriptableUnit>("Units/Enemies").ToList();
         
         _heroes = new List<BaseHero>();
         _enemies = new List<BaseEnemy>();
@@ -82,7 +86,17 @@ public class UnitsManager : MonoBehaviour
         {
             var rndSpawnedTile = _gridManager.GetHeroSpawnTile();
             hero.transform.position = rndSpawnedTile.transform.position;
-            rndSpawnedTile.SetUnit(hero);
+
+            hero.PreviousOccupiedTiles = hero.GetOccupiedTiles();
+
+            hero.OnDeath += HandleHeroDeath;
+            
+            foreach (var tile in hero.GetOccupiedTiles())
+            {
+                tile.SetUnit(hero);
+            }
+            
+            //rndSpawnedTile.SetUnit(hero);
         }
         
         //_heroes = new List<BaseHero>();
@@ -100,31 +114,121 @@ public class UnitsManager : MonoBehaviour
         //     _heroes.Add(spawnedHero);
         // }
     }
-    
-    public void SpawnEnemies()
-    {
-        var enemyCount = 3;
 
-        for (int i = 0; i < enemyCount; i++)
+    private void HandleHeroDeath(BaseUnit obj)
+    {
+        // TODO
+    }
+
+    public void HandleSpawnEnemies()
+    {
+        switch (_aiTypeSO.Type)
         {
-            var randomPrefab = GetRandomUnit<BaseEnemy>(Faction.Enemy);
-            var spawnedEnemy = Instantiate(randomPrefab);
+            case EnemyType.GOBLIN:
+                SpawnEnemy(3, EnemyType.GOBLIN);
+                break;
+            case EnemyType.ARCHER:
+                SpawnEnemy(3, EnemyType.ARCHER);
+                break;
+            case EnemyType.TANK:
+                SpawnEnemy(2, EnemyType.TANK);
+                break;
+            case EnemyType.SPAWNER:
+                SpawnEnemy(2, EnemyType.SPAWNER);
+                break;
+            case EnemyType.MIX:
+                SpawnEnemy(4, EnemyType.MIX);
+                break;
+        }
+        
+        // var enemyCount = 3;
+        //
+        // for (int i = 0; i < enemyCount; i++)
+        // {
+        //     var randomPrefab = GetRandomUnit<BaseEnemy>(Faction.Enemy);
+        //     var spawnedEnemy = Instantiate(randomPrefab);
+        //     var randomSpawnTile = _gridManager.GetEnemySpawnTile();
+        //     spawnedEnemy.transform.position = randomSpawnTile.transform.position;
+        //     randomSpawnTile.SetUnit(spawnedEnemy);
+        //     _enemies.Add(spawnedEnemy);
+        //     
+        //     spawnedEnemy.OnTurnFinished += SetNextEnemyTurn;
+        // }
+    }
+    
+    public void SpawnEnemy(int enemyNbr, EnemyType enemyType)
+    {
+        for (int i = 0; i < enemyNbr; i++)
+        {
+            BaseEnemy enemyData;
+            
+            if (enemyType == EnemyType.MIX)
+            {
+                do
+                {
+                    enemyData = GetRandomUnit<BaseEnemy>(Faction.Enemy);
+                } while (enemyData.UnitName == "Minion");
+
+            }
+            else
+            {
+                enemyData = GetAnEnemyByType(enemyType);
+            }
+            
+            var spawnedEnemy = Instantiate(enemyData);
+            
             var randomSpawnTile = _gridManager.GetEnemySpawnTile();
             spawnedEnemy.transform.position = randomSpawnTile.transform.position;
-            randomSpawnTile.SetUnit(spawnedEnemy);
+
+            spawnedEnemy.PreviousOccupiedTiles = spawnedEnemy.GetOccupiedTiles();
+            
+            foreach (var tile in spawnedEnemy.GetOccupiedTiles())
+            {
+                tile.SetUnit(spawnedEnemy);
+            }
+            
+            //randomSpawnTile.SetUnit(spawnedEnemy);
             _enemies.Add(spawnedEnemy);
             
-            spawnedEnemy.OnTurnFinished += SpawnedEnemyOnOnTurnFinished;
+            spawnedEnemy.OnTurnFinished += SetNextEnemyTurn;
+            spawnedEnemy.OnDeath += HandleEnemyDeath;
         }
     }
 
-    private void SpawnedEnemyOnOnTurnFinished()
+    
+
+    public void SetNextEnemyTurn()
     {
-        Debug.Log("je suis dedans la ");
+        StartCoroutine(WaitBeforeNextActionCo());
+    }
+
+    private void HandleEnemyDeath(BaseUnit obj)
+    {
+        _enemies.Remove((BaseEnemy)obj);
+        Debug.Log(_enemies.Count);
+    }
+    
+    private T GetRandomUnit<T>(Faction faction) where T : BaseUnit
+    {
+        return (T)_units.Where(u => u.Faction == faction).OrderBy
+            (o => Random.value).First().BaseUnitPrefab;
+    }
+
+    private BaseEnemy GetAnEnemyByType(EnemyType type)
+    {
+        return (BaseEnemy)_enemiesData.Find(
+            x => x.BaseUnitPrefab.GetComponent<BaseEnemy>().Type == type).BaseUnitPrefab;
+    }
+    
+    private IEnumerator WaitBeforeNextActionCo()
+    {
+        yield return new WaitForSeconds(_betweenTurnsTime);
+        
         if (_enemyCount < _enemies.Count - 1)
         {
             _enemyCount++;
             _currentEnemyPlaying = _enemies[_enemyCount];
+            //_currentEnemyPlaying.BehaviorTree.SetupTree();
         }
         else
         {
@@ -132,16 +236,10 @@ public class UnitsManager : MonoBehaviour
             _enemyCount = 0;
         }
     }
-
-    private T GetRandomUnit<T>(Faction faction) where T : BaseUnit
-    {
-        return (T)_units.Where(u => u.Faction == faction).OrderBy
-            (o => Random.value).First().BaseUnitPrefab;
-    }
-
-    public void SetSelectedHero(BaseHero hero)
-    {
-        _selectedHero = hero;
-        _uiBattleManager.ShowSelectedHero(hero);
-    }
+    
+    // public void SetSelectedHero(BaseHero hero)
+    // {
+    //     _selectedHero = hero;
+    //     _uiBattleManager.ShowSelectedHero(hero);
+    // }
 }

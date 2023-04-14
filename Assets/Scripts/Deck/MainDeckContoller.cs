@@ -9,8 +9,9 @@ public class MainDeckContoller : DeckController
     [SerializeField] private int _basicDefCardNbr = 4;
     
     // Start is called before the first frame update
-    void Start()
+    protected override void Start()
     {
         InstantiateBasicCard(CardsManager.Instance.ScrBasicAttackCards, _basicAttCardNbr);
+        base.Start();
     }
 }

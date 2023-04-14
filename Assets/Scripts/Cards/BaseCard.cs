@@ -188,27 +188,42 @@ public abstract class BaseCard : MonoBehaviour
         _manaNbrTxt.text = _manaCost.ToString();
     }   
     
-    private void OnMouseDrag()
-    {
-        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+    // private void OnMouseDrag()
+    // {
+    //     Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+    //
+    //     transform.position = new Vector3(mousePos.x, mousePos.y, 0f);
+    //     transform.rotation = Quaternion.identity;
+    // }
 
-        transform.position = new Vector3(mousePos.x, mousePos.y, 0f);
-        transform.rotation = Quaternion.identity;
-    }
+    // private void OnMouseUp()
+    // {
+    //     if (CheckIfCanBePlayed())
+    //     {
+    //         StartCoroutine(InterpolateMoveCo(transform.position, 
+    //             _cardPlayedManager._cardLocation.transform.position));
+    //         
+    //         _cardPlayedManager.CurrentCard = this;
+    //     }
+    //     else 
+    //     {
+    //         StartCoroutine(InterpolateMoveCo(transform.position, 
+    //             _cardPlayedManager.CardSlots[_handIndex].position));
+    //     }
+    // }
 
-    private void OnMouseUp()
+    private void OnMouseDown()
     {
+        if (_cardPlayedManager.CurrentCard == this)
+        {
+            transform.position = _cardPlayedManager.CardSlots[_handIndex].position;
+        }
+        
         if (CheckIfCanBePlayed())
         {
-            StartCoroutine(InterpolateMoveCo(transform.position, 
-                _cardPlayedManager._cardLocation.transform.position));
+            transform.position = _cardPlayedManager._cardLocation.transform.position;
             
             _cardPlayedManager.CurrentCard = this;
-        }
-        else 
-        {
-            StartCoroutine(InterpolateMoveCo(transform.position, 
-                _cardPlayedManager.CardSlots[_handIndex].position));
         }
     }
 
@@ -234,24 +249,24 @@ public abstract class BaseCard : MonoBehaviour
     
     private bool CheckIfCanBePlayed()
     {
-        bool isOutsideCardLimit = transform.position.y - (_boxCollider2D.bounds.size.y / 2) >
-                                  _cardPlayedManager._cardLimit.transform.position.y;
+        //bool isOutsideCardLimit = transform.position.y - (_boxCollider2D.bounds.size.y / 2) >
+                                  //_cardPlayedManager._cardLimit.transform.position.y;
 
-        if (_unitsManager.SelectedHero.CurrentMana == 0)
+        if (_unitsManager.HeroPlayer.CurrentMana == 0)
         {
             StopCoroutine(_uiBattleManager.NotEnoughManaCo());
             StartCoroutine(_uiBattleManager.NotEnoughManaCo());
         }
         
-        return isOutsideCardLimit && !_cardPlayedManager.HasACardOnIt && 
-               _unitsManager.SelectedHero.CurrentMana > 0;
+        return !_cardPlayedManager.HasACardOnIt && 
+               _unitsManager.HeroPlayer.CurrentMana > 0 && _unitsManager.HeroPlayer.CanPlay;
     }
     
     public virtual void GetAvailableTiles()
     {
-        _availableTiles = _tilemapsManager.GetAvailableTiles(
+        _availableTiles = _tilemapsManager.GetAvailableTilesInRange(
             _gridManager.WorldToCellCenter(GetStartingTile().transform.position),
-            _aeraOfEffect, this.gameObject);
+            _aeraOfEffect, false, true);
     }
 
     public virtual void DrawTilemap(Dictionary<Vector3, int> availableNeighbours, 

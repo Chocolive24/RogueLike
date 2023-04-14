@@ -77,17 +77,17 @@ public class UIBattleManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (_unitsManager.SelectedHero)
+        if (_unitsManager.HeroPlayer)
         {
             if (!_cardPlayedManager.HasACardOnIt)
             {
-                _manaNbrTxt.text = _unitsManager.SelectedHero.CurrentMana.ToString() + " / " +
-                                   _unitsManager.SelectedHero.MaxMana.ToString();
+                _manaNbrTxt.text = _unitsManager.HeroPlayer.CurrentMana.ToString() + " / " +
+                                   _unitsManager.HeroPlayer.MaxMana.ToString();
             }
             else
             {
-                _manaNbrTxt.text = _unitsManager.SelectedHero.CurrentMana.ToString() + " / " +
-                                   _unitsManager.SelectedHero.MaxMana.ToString();
+                _manaNbrTxt.text = _unitsManager.HeroPlayer.CurrentMana.ToString() + " / " +
+                                   _unitsManager.HeroPlayer.MaxMana.ToString();
             }
         }
     }
@@ -97,17 +97,17 @@ public class UIBattleManager : MonoBehaviour
         _battleManager.IsPlayerTurn = false;
     }
     
-    public void ShowSelectedHero(BaseHero hero)
-    {
-        if (!hero)
-        {
-            _selectedHeroObject.SetActive(false);
-            return;
-        }
-        
-        _selectedHeroObject.GetComponentInChildren<TextMeshProUGUI>().text = hero.UnitName;
-        _selectedHeroObject.SetActive(true);
-    }
+    // public void ShowSelectedHero(BaseHero hero)
+    // {
+    //     if (!hero)
+    //     {
+    //         _selectedHeroObject.SetActive(false);
+    //         return;
+    //     }
+    //     
+    //     _selectedHeroObject.GetComponentInChildren<TextMeshProUGUI>().text = hero.UnitName;
+    //     _selectedHeroObject.SetActive(true);
+    // }
 
     public void ShowTileInfo(TileCell tile)
     {
@@ -121,7 +121,7 @@ public class UIBattleManager : MonoBehaviour
         _tileObject.GetComponentInChildren<TextMeshProUGUI>().text = tile.Name;
         _tileObject.SetActive(true);
 
-        if (tile.OccupiedUnit)
+        if (tile.OccupiedUnit && _unitsManager.HeroPlayer.CanPlay)
         {
             string tileUnitObjTxt;
             tileUnitObjTxt = tile.OccupiedUnit.UnitName;
@@ -129,7 +129,9 @@ public class UIBattleManager : MonoBehaviour
             if (tile.OccupiedUnit.GetComponent<BaseEnemy>())
             {
                 tileUnitObjTxt += "\n dist. " + 
-                                  tile.OccupiedUnit.GetComponent<BaseEnemy>().CalculateDistanceFromThePlayer();
+                                  tile.OccupiedUnit.GetComponent<BaseEnemy>().CalculDistanceFromSelf(
+                                      _unitsManager.HeroPlayer.transform.position, 
+                                      true, false, false);
             }
 
             _tileUnitObject.GetComponentInChildren<TextMeshProUGUI>().text = tileUnitObjTxt;
@@ -145,5 +147,10 @@ public class UIBattleManager : MonoBehaviour
         yield return new WaitForSeconds(1.5f);
         
         _notEnoughManaTxt.gameObject.SetActive(false);
+    }
+
+    public void SetCurrentTurnText(string currentTurn)
+    {
+        _currentTurnTxt.text = currentTurn;
     }
 }

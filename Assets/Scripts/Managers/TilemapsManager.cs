@@ -1,9 +1,5 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -21,6 +17,7 @@ public class TilemapsManager : MonoBehaviour
     [SerializeField] private Tilemap _attackTilemap;
     [SerializeField] private RuleTile _movementRuleTile;
     [SerializeField] private RuleTile _attackRuleTile;
+    [SerializeField] private RuleTile _enemyAttackRuleTile;
     [SerializeField] private TileCell _movementTile;
     [SerializeField] private TileCell _attackTile;
 
@@ -37,6 +34,8 @@ public class TilemapsManager : MonoBehaviour
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public Tilemap AttackTilemap => _attackTilemap;
     public RuleTile AttackRuleTile => _attackRuleTile;
+
+    public RuleTile EnemyAttackRuleTile => _enemyAttackRuleTile;
     public TileCell AttackTile => _attackTile;
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -90,14 +89,13 @@ public class TilemapsManager : MonoBehaviour
     /// <param name="gameObject">Check if the gameObject is a BaseAttackCard, if so, we need to add the enemies
     ///                          Tiles to the availableTiles.</param>
     /// <returns></returns>
-    public Dictionary<Vector3, int> GetAvailableTiles(Vector3 startPos, int range, GameObject gameObject)
+    public Dictionary<Vector3, int> GetAvailableTilesInRange(Vector3 startPos, int range, 
+        bool countHeroes, bool countEnemies)
     {
         var queue = new Queue<Vector3>();
         var distances = new Dictionary<Vector3, int> { { startPos, 0 } };
 
         queue.Enqueue(startPos);
-
-        bool countEnemies = gameObject.GetComponent<BaseAttackCard>();
 
         while (queue.Count > 0)
         {
@@ -107,7 +105,7 @@ public class TilemapsManager : MonoBehaviour
             {
                 var neighbor = _gridManager.WorldToCellCenter(currentPos + direction);
 
-                if (IsPositionAvailable(neighbor, false, countEnemies) && 
+                if (IsPositionAvailable(neighbor, countHeroes, countEnemies) && 
                     !distances.ContainsKey(neighbor))
                 {
                     if (distances[currentPos] + 1 <= range)
@@ -122,19 +120,26 @@ public class TilemapsManager : MonoBehaviour
         return distances;
     }
 
-    private bool IsPositionAvailable(Vector3 position, bool countHeroes, bool countEnemies)
+    public bool IsPositionAvailable(Vector3 position, bool countHeroes, bool countEnemies)
     {
         if (_gridManager.GetTileAtPosition(position) != null)
         {
             TileCell tile = _gridManager.GetTileAtPosition(position);
             
+            if (countHeroes && tile.OccupiedUnit != null)
+            {
+                if (tile.OccupiedUnit.Faction == Faction.Hero)
+                {
+                    return true;
+                }
+                
+            }
             if (countEnemies && tile.OccupiedUnit != null)
             {
-                return tile.OccupiedUnit.Faction == Faction.Enemy;
-            }
-            else if (countHeroes && tile.OccupiedUnit != null)
-            {
-                return tile.OccupiedUnit.Faction == Faction.Hero;
+                if (tile.OccupiedUnit.Faction == Faction.Enemy)
+                {
+                    return true;
+                }
             }
 
             return tile.Walkable;
@@ -159,7 +164,7 @@ public class TilemapsManager : MonoBehaviour
         }
     }
 
-    public List<Vector3> FindPath(Vector3 startPos, Vector3 endPos)
+    public List<Vector3> FindPath(Vector3 startPos, Vector3 endPos, bool countHeroes, bool countEnemies)
     {
         List<Vector3> openList = new List<Vector3>();
         List<Vector3> closedList = new List<Vector3>();
@@ -182,7 +187,7 @@ public class TilemapsManager : MonoBehaviour
             {
                 var neighbor = _gridManager.WorldToCellCenter(currentPos + direction);
 
-                if (!IsPositionAvailable(neighbor, true,false) || closedList.Contains(neighbor))
+                if (!IsPositionAvailable(neighbor, countHeroes, countEnemies) || closedList.Contains(neighbor))
                 {
                     continue;
                 }

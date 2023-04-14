@@ -17,6 +17,9 @@ public class BT_Selector : BT_Node
     public override BT_Status Process()
     {
         BT_Status status = _children[_idxSelectedChild].Process();
+        
+        Debug.Log("I'm the node : " + _children[_idxSelectedChild].Name + 
+                  " / Depth : " + _children[_idxSelectedChild].Depth + " / Status : " + status);
 
         switch (status)
         {

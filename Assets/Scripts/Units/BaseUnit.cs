@@ -12,23 +12,26 @@ public class BaseUnit : MonoBehaviour
 
     [SerializeField] private string _unitName;
     [SerializeField] private Faction _faction;
-    [SerializeField] protected int _hp;
-    [SerializeField] protected int _attack;
-    [SerializeField] protected int _shield;
-    [SerializeField] protected int _movement;
+    [SerializeField] protected IntReference _maxHP;
+    [SerializeField] protected IntReference _currentHP;
+    [SerializeField] protected IntReference _attack;
+    [SerializeField] protected IntReference _shield;
+    [SerializeField] protected IntReference _movement;
+    [SerializeField] protected IntReference _speed;
+   
     
     #endregion
     
-    public string UnitName => _unitName;
+    // protected TileCell _occupiedTile;
+    protected List<TileCell> _previousOccupiedTiles = new List<TileCell>();
     
-    private TileCell _occupiedTile;
-
-    [SerializeField] protected float _speed = 8f;
     
     protected Vector3? _targetPos = null;
     protected Dictionary<Vector3, int> _availableTiles;
+    protected Dictionary<Vector3, int> _attackTiles;
     protected List<Vector3> _path;
     protected int _currentTargetIndex = 0;
+    protected bool _stopFollowingPath = false;
 
     protected List<Vector3> _avalaiblePath;
     
@@ -38,24 +41,33 @@ public class BaseUnit : MonoBehaviour
     protected TilemapsManager _tilemapsManager;
     protected UnitsManager _unitsManager;
 
+    protected HealthBar _healthBar;
+    
     // Events ----------------------------------------------------------------------------------------------------------
-    public event Action OnTurnFinished; 
+    public event Action<BaseUnit, int> OnDamageTaken;
+    public event Action<BaseUnit> OnDeath;
     
     // Getters and Setters ---------------------------------------------------------------------------------------------
 
     #region Getters and Setters
 
-    public TileCell OccupiedTile { get => _occupiedTile; set => _occupiedTile = value; }
-    
-    public Faction Faction => _faction;
-    
-    
-    public int Movement
-    {
-        get => _movement;
-        set => _movement = value;
-    }
+    public string UnitName => _unitName;
+    //public TileCell OccupiedTile { get => _occupiedTile; set => _occupiedTile = value; }
 
+    //public List<TileCell> OccupiedTiles => GetOccupiedTiles();
+
+    public Faction Faction => _faction;
+
+    public IntReference MaxHp => _maxHP;
+    public IntReference CurrentHp => _currentHP;
+    
+    public IntReference Movement { get => _movement; }
+
+    public List<TileCell> PreviousOccupiedTiles
+    {
+        get => _previousOccupiedTiles;
+        set => _previousOccupiedTiles = value;
+    }
     public Vector3? TargetPos
     {
         get => _targetPos;
@@ -68,11 +80,20 @@ public class BaseUnit : MonoBehaviour
         set => _path = value;
     }
 
+    public List<Vector3> AvailablePath => _avalaiblePath;
+
     #endregion
 
     // Methods ---------------------------------------------------------------------------------------------------------
+    protected virtual void Awake()
+    {
+        _healthBar = GetComponent<HealthBar>();
+    }
+
     protected virtual void Start()
     {
+        _currentHP.SetValue(_maxHP.Value);
+        
         _availableTiles = new Dictionary<Vector3, int>();
         _path = new List<Vector3>();
         _avalaiblePath = new List<Vector3>();
@@ -85,14 +106,39 @@ public class BaseUnit : MonoBehaviour
 
     protected virtual void Update()
     {
-        MoveOnGrid();
+        //MoveOnGrid();
     }
 
-    public virtual void FindAvailablePathToTarget(Vector3 targetPos)
+    public virtual void TakeDamage(int damage)
     {
-        _path = _tilemapsManager.FindPath(transform.position, targetPos);
+        _currentHP.SubstractValue(damage);
         
-        // If the enemy is already near the player, there would be no path, so we don't need to move the enemy.
+        _healthBar.UpdateHealthBar(_currentHP.Value, _maxHP.Value);
+        
+        OnDamageTaken?.Invoke(this, damage);
+        
+        if (_currentHP.Value <= 0)
+        {
+            Kill();
+        }
+    }
+
+    public virtual List<TileCell> GetOccupiedTiles()
+    {
+        return new List<TileCell>{GridManager.Instance.GetTileAtPosition(transform.position)};
+    }
+
+    // public virtual Dictionary<Vector3, int> GetAvailableTiles(Vector3 startPos, int range, 
+    //                                                             bool countHeroes, bool countEnemies)
+    // {
+    //     return GetAvailableTilesInRange(startPos, range, countHeroes, countEnemies);
+    // }
+
+    public virtual void FindAvailablePathToTarget(Vector3 targetPos, int minimumPathCount, 
+        bool countHeroes, bool countEnemies, bool countWalls)
+    {
+        _path = FindPath(transform.position, targetPos, countHeroes, countEnemies, countWalls);
+        
         if (_path.Count > 0)
         {
             _avalaiblePath = _availableTiles.Keys.Intersect(_path).ToList();
@@ -101,17 +147,17 @@ public class BaseUnit : MonoBehaviour
         }
         else
         {
-            _targetPos = transform.position;
+            _targetPos = null;
         }
     }
     
-    protected virtual void MoveOnGrid()
+    public virtual void MoveOnGrid()
     {
         if (_targetPos.HasValue)
         {
             // Move the player to the target position
             transform.position = Vector3.MoveTowards(transform.position, _targetPos.Value,
-                _speed * Time.deltaTime);
+                _speed.Value * Time.deltaTime);
 
             // The distance between the player and the target point would never be exactly equal to 0.
             // So we check with an Epsilon value if the player as reached the target position.
@@ -131,29 +177,169 @@ public class BaseUnit : MonoBehaviour
 
     protected virtual void FollowThePath()
     {
-        if (_currentTargetIndex < _avalaiblePath.Count) 
+        if (_currentTargetIndex < _avalaiblePath.Count - 1) 
         {
-            _targetPos = _gridManager.WorldToCellCenter(_avalaiblePath[_currentTargetIndex]);
             _currentTargetIndex++;
+
+            var nextTile = _gridManager.GetTileAtPosition(_avalaiblePath[_currentTargetIndex]);
+            
+            if (nextTile.OccupiedUnit != null || GetOccupiedTiles().Contains(nextTile))
+            {
+                StopThePath();
+            }
+            else
+            {
+                _targetPos = _gridManager.WorldToCellCenter(_avalaiblePath[_currentTargetIndex]);
+            }
         }
+        
         else
-        { 
-            OnTurnFinished?.Invoke();
-            _gridManager.GetTileAtPosition(transform.position).SetUnit(this);
-            _targetPos = null;
-            _currentTargetIndex = 0;
-            _path.Clear();
-            _avalaiblePath.Clear();
+        {
+            StopThePath();
         }
+    }
+
+    protected virtual void StopThePath()
+    {
+        foreach (var tile in _previousOccupiedTiles)
+        {
+            tile.OccupiedUnit = null;
+        }
+
+        _previousOccupiedTiles = GetOccupiedTiles();
+        
+        foreach (var tile in GetOccupiedTiles())
+        {
+            tile.SetUnit(this);
+        }
+        
+        //_gridManager.GetTileAtPosition(transform.position).SetUnit(this);
+        _targetPos = null;
+        _currentTargetIndex = 0;
+        _path.Clear();
+        _avalaiblePath.Clear();
     }
 
     public virtual void DisplayStats()
     {
-        Debug.Log(_hp + " " +  _attack + " " + _shield);
+        Debug.Log(_maxHP + " " +  _attack + " " + _shield);
     }
     
-    public void Kill()
+    protected virtual void Kill()
     {
+        OnDeath?.Invoke(this);
         Destroy(this.gameObject);
+    }
+    
+    public virtual Dictionary<Vector3, int> GetAvailableTilesInRange(Vector3 startPos, int range, 
+        bool countHeroes, bool countEnemies)
+    {
+        return _tilemapsManager.GetAvailableTilesInRange(startPos, range, countHeroes, countEnemies);
+    }
+    
+    public virtual List<Vector3> FindPath(Vector3 startPos, Vector3 endPos, bool countHeroes, 
+                                            bool countEnemies, bool countWalls)
+    {
+        List<Vector3> openList = new List<Vector3>();
+        List<Vector3> closedList = new List<Vector3>();
+        
+        openList.Add(startPos);
+
+        while (openList.Count > 0)
+        {
+            Vector3 currentPos = openList.OrderBy(x => _gridManager.GetTileAtPosition(x).F).First();
+
+            openList.Remove(currentPos);
+            closedList.Add(currentPos);
+
+            if (currentPos == endPos)
+            {
+                return RestrucutrePath(startPos, endPos);
+            }
+            
+            foreach (var direction in new Vector3[] { Vector3.up, Vector3.down, Vector3.left, Vector3.right })
+            {
+                var neighbor = _gridManager.WorldToCellCenter(currentPos + direction);
+
+                if (!IsPositionAvailable(neighbor, countHeroes, countEnemies, countWalls) || closedList.Contains(neighbor))
+                {
+                    continue;
+                }
+                
+                _gridManager.GetTileAtPosition(neighbor).G = GetManhattenDistance(startPos, neighbor);
+                _gridManager.GetTileAtPosition(neighbor).H = GetManhattenDistance(endPos, neighbor);
+
+                _gridManager.GetTileAtPosition(neighbor).PreviousTilePos = currentPos;
+
+                if (!openList.Contains(neighbor))
+                {
+                    openList.Add(neighbor);
+                }
+            }
+        }
+
+        return new List<Vector3>();
+    }
+    
+    private int GetManhattenDistance(Vector3 startPos, Vector3 neighbor)
+    {
+        return (int)(Mathf.Abs(startPos.x - neighbor.x) + Mathf.Abs(startPos.y - neighbor.y));
+    }
+    
+    protected virtual List<Vector3> RestrucutrePath(Vector3 startPos, Vector3 endPos)
+    {
+        List<Vector3> finishedList = new List<Vector3>();
+
+        Vector3 currentPos = endPos;
+
+        while (currentPos != startPos)
+        {
+            finishedList.Add(currentPos);
+            currentPos = _gridManager.GetTileAtPosition(currentPos).PreviousTilePos;
+        }
+
+        finishedList.Reverse();
+        
+        return finishedList;
+    }
+    
+    public virtual bool IsPositionAvailable(Vector3 position, bool countHeroes, bool countEnemies, bool countWalls)
+    {
+        TileCell tile = _gridManager.GetTileAtPosition(position);
+        
+        if (tile)
+        {
+            if (countWalls)
+            {
+                return true;
+            }
+            
+            if (countHeroes && tile.OccupiedUnit != null)
+            {
+                if (tile.OccupiedUnit.Faction == Faction.Hero)
+                {
+                    return true;
+                }
+                
+            }
+            if (countEnemies && tile.OccupiedUnit != null)
+            {
+                if (tile.OccupiedUnit.Faction == Faction.Enemy)
+                {
+                    return true;
+                }
+            }
+
+            return tile.Walkable;
+        }
+
+        return false;
+    }
+    
+    public int CalculDistanceFromSelf(Vector3 endPos, bool countHeroes, bool countEnemies, bool countWalls)
+    {
+        _path = FindPath(transform.position, endPos, 
+            countHeroes, countEnemies, countWalls);
+        return _path.Count;
     }
 }

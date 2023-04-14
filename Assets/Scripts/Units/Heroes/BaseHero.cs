@@ -20,8 +20,8 @@ public class BaseHero : BaseUnit
 
     [SerializeField] protected HeroClass _heroClass;
     [SerializeField] protected int _maxMana;
-    [SerializeField] protected float _exploreSpeed = 10f;
-    [SerializeField] protected float _battleSpeed = 8f;
+    [SerializeField] protected IntReference _exploreSpeed;
+    [SerializeField] protected IntReference _battleSpeed;
 
     #endregion
 
@@ -44,7 +44,9 @@ public class BaseHero : BaseUnit
     // #endregion
     
     protected int _currentMana;
-    
+
+    private bool _canPlay;
+
     // References ------------------------------------------------------------------------------------------------------
     // private GameManager _gameManager;
     // private GridManager _gridManager;
@@ -62,6 +64,8 @@ public class BaseHero : BaseUnit
         set => _currentMana = value;
     }
 
+    public bool CanPlay => _canPlay;
+
     // public Dictionary<Vector3, int> Path
     // {
     //     get => _path1;
@@ -72,16 +76,32 @@ public class BaseHero : BaseUnit
     
     // -----------------------------------------------------------------------------------------------------------------
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         GameManager.OnGameStateChange += GameManagerOnOnGameStateChange;
+        BattleManager.OnPlayerTurnStart += StartTurn;
+        BattleManager.OnPlayerTurnEnd += EndTurn;
     }
-
+    
     private void GameManagerOnOnGameStateChange()
     {
         _targetPos = null;
     }
+    
+    private void StartTurn(BattleManager obj)
+    { 
+        //_unitsManager.SetSelectedHero(this);
+        _currentMana = _maxMana;
+        _canPlay = true;
+    }
 
+    private void EndTurn(BattleManager obj)
+    {
+        _canPlay = false;
+        //_unitsManager.SetSelectedHero(null);
+    }
+    
     // Start is called before the first frame update
     protected override void Start()
     {
@@ -101,52 +121,27 @@ public class BaseHero : BaseUnit
         
         base.Update();
         
+        MoveOnGrid();
+        
         HandleShuffleCardsBackToDeck();
     }
 
-    public override void FindAvailablePathToTarget(Vector3 targetPos)
+    public override void FindAvailablePathToTarget(Vector3 targetPos, int minimumPathCunt, 
+        bool countHeroes, bool countEnemies, bool countWalls)
     {
         _availableTiles = _cardPlayedManager.CurrentCard.AvailableTiles;
-        base.FindAvailablePathToTarget(targetPos);
-    }
-
-    private void HandleMove()
-    {
-        
-        
-        // if (_targetPos1.HasValue)
-        // {
-        //     float speed = _gameManager.IsInBattleState ? _battleSpeed : _exploreSpeed;
-        //
-        //     // Move the player to the target position
-        //     transform.position = Vector3.MoveTowards(transform.position, _targetPos1.Value,
-        //         speed * Time.deltaTime);
-        //
-        //     // The distance between the player and the target point would never be exactly equal to 0.
-        //     // So we check with an Epsilon value if the player as reached the target position.
-        //     // Then we set his position to the target position in order to be precise.
-        //     if (Vector3.Distance(transform.position, _targetPos1.Value) <= 0.01f)
-        //     {
-        //         transform.position = _targetPos1.Value;
-        //         _targetPos1 = null;
-        //
-        //         if (_gameManager.IsInBattleState)
-        //         {
-        //             HandleBattleMove();
-        //         }
-        //     }
-        // }
+        base.FindAvailablePathToTarget(targetPos, 0, countHeroes, countEnemies, countWalls);
     }
 
     private void HandleShuffleCardsBackToDeck()
     {
         if (_movDiscardDeck.DiscardDeck.Count >= _movementDeck.Size)
         {
-            _movDiscardDeck.ShuffleCardsBackToDeck(_movementDeck.Deck);
+            _movDiscardDeck.ShuffleCardsBackToDeck(_movementDeck);
         }
         else if (_mainDiscardDeck.DiscardDeck.Count >= _mainDeck.Size)
         {
-            _mainDiscardDeck.ShuffleCardsBackToDeck(_mainDeck.Deck);
+            _mainDiscardDeck.ShuffleCardsBackToDeck(_mainDeck);
         }
     }
     
@@ -198,29 +193,4 @@ public class BaseHero : BaseUnit
             }
         }
     }
-
-    // public void HandleBattleMove()
-    // {
-    //     if (_pathPositions1.Count == 0)
-    //     {
-    //         foreach (var item in _path1)
-    //         {
-    //             _pathPositions1.Add(item.Key);
-    //         }
-    //         
-    //         _pathPositions1.Reverse();
-    //     }
-    //     
-    //     if (_currentTargetIndex1 < _pathPositions1.Count) 
-    //     {
-    //         _targetPos1 = _gridManager.WorldToCellCenter(_pathPositions1[_currentTargetIndex1]);
-    //         _currentTargetIndex1++;
-    //     }
-    //     else
-    //     {
-    //         _targetPos1 = null;
-    //         _currentTargetIndex1 = 0;
-    //         _pathPositions1.Clear();
-    //     }
-    // }
 }

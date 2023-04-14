@@ -8,8 +8,9 @@ public class MovementDeckController : DeckController
     [SerializeField] private int _basicMoveCardNbr = 5;
     
     // Start is called before the first frame update
-    void Start()
+    protected override void Start()
     {
         InstantiateBasicCard(CardsManager.Instance.ScrBasicMoveCards, _basicMoveCardNbr);
+        base.Start();
     }
 }

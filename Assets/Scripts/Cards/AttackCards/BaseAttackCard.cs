@@ -18,6 +18,9 @@ public class BaseAttackCard : BaseCard
     
     // References ------------------------------------------------------------------------------------------------------
 
+    // Getters and Setters ---------------------------------------------------------------------------------------------
+    public int Damage => _damage;
+
     // Methods ---------------------------------------------------------------------------------------------------------
     
     // Start is called before the first frame update
@@ -35,10 +38,10 @@ public class BaseAttackCard : BaseCard
     
     public override void DrawTilemap(Dictionary<Vector3, int> availableNeighbours, Tilemap tilemap, RuleTile ruleTile)
     {
-        if (availableNeighbours.ContainsKey(_gridManager.WorldTilemap.WorldToCell(
+        if (availableNeighbours.ContainsKey(_gridManager.CurrentRoomTilemap.WorldToCell(
                 GetStartingTile().transform.position)))
         {
-            availableNeighbours.Remove(_gridManager.WorldTilemap.WorldToCell(
+            availableNeighbours.Remove(_gridManager.CurrentRoomTilemap.WorldToCell(
                 GetStartingTile().transform.position));
         }
         

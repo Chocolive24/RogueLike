@@ -2,8 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Packages.Rider.Editor.UnitTesting;
-using UnityEditor.Search;
 using UnityEngine;
 
 public class TileCell : MonoBehaviour
@@ -93,6 +91,9 @@ public class TileCell : MonoBehaviour
     private void Start()
     {
         _arrowTranslator = new ArrowTranslator();
+        
+        ReferenceManagers();
+        _position = _gridManager.WorldToCellCenter(transform.position);
     }
 
     private void ReferenceManagers()
@@ -107,18 +108,30 @@ public class TileCell : MonoBehaviour
 
     public virtual void Init(int x, int y)
     {
-        ReferenceManagers();
-        _position = _gridManager.WorldToCellCenter(transform.position);
+        
     }
 
     public void SetUnit(BaseUnit unit)
     {
-        if (unit.OccupiedTile)
-        {
-            unit.OccupiedTile.OccupiedUnit = null;
-        }
+        // if (unit.OccupiedTile)
+        // {
+        //     unit.OccupiedTile.OccupiedUnit = null;
+        // }
+        // _occupiedUnit = unit;
+        // unit.OccupiedTile = this;
+
+        // if (unit.OccupiedTiles.Count > 0)
+        // {
+        //     foreach (var tile in unit.OccupiedTiles)
+        //     {
+        //         tile.OccupiedUnit = null;
+        //     }
+        //     
+        //     unit.OccupiedTiles.Clear();
+        // }
+
         _occupiedUnit = unit;
-        unit.OccupiedTile = this;
+        //unit.OccupiedTiles.Add(this);
     }
     
     protected virtual void OnMouseEnter()
@@ -140,7 +153,7 @@ public class TileCell : MonoBehaviour
 
                 card.Path = _tilemapsManager.FindPathWithinRange(_position, card.AvailableTiles);
         
-                _unitsManager.SelectedHero.Path = card.Path.Keys.ToList();
+                _unitsManager.HeroPlayer.Path = card.Path.Keys.ToList();
 
                 List<TileCell> pathTiles = new List<TileCell>();
                 
@@ -156,7 +169,7 @@ public class TileCell : MonoBehaviour
 
                 for (int i = 0; i < pathTiles.Count; i++)
                 {
-                    var previousTile = i > 0 ? pathTiles[i - 1] : _unitsManager.SelectedHero.OccupiedTile;
+                    var previousTile = i > 0 ? pathTiles[i - 1] : _unitsManager.HeroPlayer.GetOccupiedTiles().First();
                     var futureTile = i < pathTiles.Count - 1 ? pathTiles[i + 1] : null;
 
                     _arrowTranslator.DrawArrowPath(previousTile, pathTiles[i], futureTile);
@@ -200,19 +213,19 @@ public class TileCell : MonoBehaviour
         // If there is a unit on the tile we clicked.
         if (_occupiedUnit != null)
         {
-            // If the unit is a hero, set this hero to selected.
-            if (_occupiedUnit.Faction == Faction.Hero)
-            {
-                _unitsManager.SetSelectedHero((BaseHero)_occupiedUnit);
-            }
+            // // If the unit is a hero, set this hero to selected.
+            // if (_occupiedUnit.Faction == Faction.Hero)
+            // {
+            //     _unitsManager.SetSelectedHero((BaseHero)_occupiedUnit);
+            // }
             // Else, destroy the enemy on the tile we clicked.
-            else
-            {
+            // else
+            // {
                 var enemy = (BaseEnemy)_occupiedUnit;
 
                 enemy.IsSelected = !enemy.IsSelected;
 
-                if (_unitsManager.SelectedHero != null && 
+                if (_unitsManager.HeroPlayer != null && 
                     _cardPlayedManager.HasAnAttackCardOnIt)
                 {
                     // potential stuff to do
@@ -222,30 +235,29 @@ public class TileCell : MonoBehaviour
                     
                     if (_cardPlayedManager.CurrentCard.AvailableTiles.ContainsKey(this.Position) && enemy != null)
                     {
+                        BaseAttackCard attackCard = (BaseAttackCard)_cardPlayedManager.CurrentCard;
                         enemy.IsSelected = false;
-                        Destroy(enemy.MovementTilemap.gameObject);
-                        Destroy(enemy.gameObject);
-                        _unitsManager.Enemies.Remove(enemy);
+                        enemy.TakeDamage(attackCard.Damage);
                         //UnitsManager.Instance.SetSelectedHero(null);
                         _cardPlayedManager.HandlePlayedCard();
                     }
                 }
-            }
+            //}
         }
         
         // If there is no unit on the tile we clicked on.
         else
         {
             //Check if we have a selected hero and if we have played a moveCard.
-            if (_unitsManager.SelectedHero != null  && 
+            if (_unitsManager.HeroPlayer != null  && 
                 _cardPlayedManager.HasAMoveCardOnIt)
             {
                 // If so, move the hero to the tile where the player clicked if it is in the range of the aoe moveCard
                 // and it is walkable.
                 if (_cardPlayedManager.CurrentCard.AvailableTiles.ContainsKey(this.Position) && Walkable)
                 {
-                    _unitsManager.SelectedHero.FindAvailablePathToTarget(transform.position);
-                    SetUnit(_unitsManager.SelectedHero);
+                    _unitsManager.HeroPlayer.FindAvailablePathToTarget(transform.position, 0,
+                        false, false, false);
                     //UnitsManager.Instance.SetSelectedHero(null);
                     _cardPlayedManager.HandlePlayedCard();
                 }
@@ -255,14 +267,14 @@ public class TileCell : MonoBehaviour
     
     private void CheckForEnemyTilemapToCreate()
     {
-        if (_occupiedUnit != null)
+        if (_occupiedUnit != null && _unitsManager.HeroPlayer.CanPlay)
         {
             if (_occupiedUnit.TryGetComponent<BaseEnemy>(out BaseEnemy enemy))
             {
                 int x = (int)_occupiedUnit.transform.position.x;
                 int y = (int)_occupiedUnit.transform.position.y;
 
-                var pos = _gridManager.WorldTilemap.WorldToCell(new Vector3(x, y, 0));
+                var pos = _gridManager.CurrentRoomTilemap.WorldToCell(new Vector3(x, y, 0));
                 
                 TileCell startingTile = _gridManager.GetTileAtPosition(
                     _gridManager.WorldToCellCenter(pos));
@@ -272,12 +284,18 @@ public class TileCell : MonoBehaviour
                 {
                     enemy.MovementTilemap = _tilemapsManager.InstantiateTilemap("Enemy Movement");
 
-                    enemy.AvailableTiles = _tilemapsManager.GetAvailableTiles(startingTile.Position,
-                        _occupiedUnit.GetComponent<BaseEnemy>().Movement, enemy.gameObject);
+                    enemy.AvailableTiles = enemy.GetAvailableTilesInRange(startingTile.Position,
+                        _occupiedUnit.GetComponent<BaseEnemy>().Movement.Value, false, false);
                     
                     _tilemapsManager.DrawTilemap(enemy.AvailableTiles,
                         enemy.MovementTilemap, 
                         _tilemapsManager.AttackRuleTile);
+                }
+
+                if (!enemy.AttackTilemap)
+                {
+                    enemy.AttackTilemap = _tilemapsManager.InstantiateTilemap("Enemy Attack");
+                    enemy.DrawAttackTiles();
                 }
             }
         }
@@ -289,9 +307,10 @@ public class TileCell : MonoBehaviour
         {
             if (_occupiedUnit.TryGetComponent<BaseEnemy>(out BaseEnemy enemy))
             {
-                if (!enemy.IsSelected)
+                if (!enemy.IsSelected && enemy.MovementTilemap)
                 {
                     Destroy(enemy.MovementTilemap.gameObject);
+                    Destroy(enemy.AttackTilemap.gameObject);
                 }
             }
         }

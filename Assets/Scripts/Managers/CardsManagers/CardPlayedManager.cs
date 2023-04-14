@@ -153,7 +153,7 @@ public class CardPlayedManager : MonoBehaviour
     /// </summary>
     public void HandlePlayedCard()
     {
-        _unitsManager.SelectedHero.CurrentMana -= _currentCard.ManaCost;
+        //_unitsManager.HeroPlayer.CurrentMana -= _currentCard.ManaCost;
         
         // Free the current card slot.
         _availableCardSlots[_currentCard.HandIndex] = true;

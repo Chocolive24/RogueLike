@@ -85,7 +85,7 @@ public class GameManager : MonoBehaviour
 
         _stateMachine = new StateMachine();
 
-        _stateMachine.AddTransition(_exploringGameState, _battleGameState, () => _time > 2f);
+        _stateMachine.AddTransition(_exploringGameState, _battleGameState, () => _time > 0.1f);
         _stateMachine.AddTransition(_battleGameState, _exploringGameState, () => !_isInBattleState);
 
         _stateMachine.SetState(_exploringGameState);

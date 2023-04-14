@@ -7,6 +7,26 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4075784539514193477, guid: 2d4ce61089d2b6944ab02f0b72330f1a, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5500090145586119193, guid: 2d4ce61089d2b6944ab02f0b72330f1a, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: c3b953399404213488f89b724620eaf6, type: 3}
+    - target: {fileID: 5500090145586119193, guid: 2d4ce61089d2b6944ab02f0b72330f1a, type: 3}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5500090145586119193, guid: 2d4ce61089d2b6944ab02f0b72330f1a, type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5500090145586119193, guid: 2d4ce61089d2b6944ab02f0b72330f1a, type: 3}
+      propertyPath: m_Color.r
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5906176664036773632, guid: 2d4ce61089d2b6944ab02f0b72330f1a, type: 3}
       propertyPath: m_RootOrder
       value: 0
@@ -77,16 +97,41 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _unitName: Paladin
   _faction: 0
-  _hp: 80
-  _attack: 0
-  _shield: 0
-  _movement: 0
-  _movementDeck: {fileID: 0}
-  _mainDeck: {fileID: 0}
+  _maxHP:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 11400000, guid: 4d692dbc8b575c44296fcb88e6a6b271, type: 2}
+  _currentHP:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 11400000, guid: ac36d26e88ddf124bb2c248e8cdaff9f, type: 2}
+  _attack:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 11400000, guid: 4fb2bff2c7e868c40bd61d4021591daa, type: 2}
+  _shield:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 11400000, guid: bc9d44cc035f66e4c8cc3d524dfd3689, type: 2}
+  _movement:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 11400000, guid: 62c0e1bb0ecb4db4db61bb0776daeba5, type: 2}
+  _speed:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 11400000, guid: 4560b11ed34c93c44824028003737d6c, type: 2}
+  _tileSize: 0
   _heroClass: 0
   _maxMana: 5
-  _exploreSpeed: 10
-  _battleSpeed: 8
+  _exploreSpeed:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 11400000, guid: 9f01151e24b1be1438c1452b7198d614, type: 2}
+  _battleSpeed:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 11400000, guid: 4560b11ed34c93c44824028003737d6c, type: 2}
 --- !u!114 &-632468933280581228
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 public abstract class DeckController : MonoBehaviour
@@ -11,9 +12,11 @@ public abstract class DeckController : MonoBehaviour
 
     [SerializeField] protected HeroClass _heroClass;
     
-    [SerializeField] private TextMeshProUGUI _carNbrTxt;
+    [SerializeField] protected TextMeshProUGUI _carNbrTxt;
 
     [SerializeField] protected int _size;
+
+    [SerializeField] protected Button _button;
     
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public List<BaseCard> Deck => _deck;
@@ -25,16 +28,32 @@ public abstract class DeckController : MonoBehaviour
         set => _size = value;
     }
 
-    // Start is called before the first frame update
-    void Start()
+    private void Awake()
     {
-        
+        BattleManager.OnPlayerTurnStart += StartTurn;
+        BattleManager.OnEnemyTurnEnd += EndTurn;
+    }
+
+    // Start is called before the first frame update
+    protected virtual void Start()
+    {
+        UpdateCardTxtNbr();
     }
 
     // Update is called once per frame
     void Update()
     {
-        _carNbrTxt.text = _deck.Count.ToString();
+        
+    }
+    
+    private void StartTurn(BattleManager obj)
+    {
+        _button.interactable = true;
+    }
+
+    private void EndTurn(BattleManager obj)
+    {
+        _button.interactable = false;
     }
 
     protected void InstantiateBasicCard(List<ScriptableCard> scriptableCards, int cardNbr)
@@ -67,10 +86,17 @@ public abstract class DeckController : MonoBehaviour
                     rndCard.transform.position = CardPlayedManager.Instance.CardSlots[i].position;
                     CardPlayedManager.Instance.AvailableCardSlots[i] = false;
                     _deck.Remove(rndCard);
+                    
+                    UpdateCardTxtNbr();
                     return;
                 }
             }
         }
+    }
+
+    public void UpdateCardTxtNbr()
+    {
+        _carNbrTxt.text = _deck.Count.ToString();
     }
     
     // TODO AddCard() -> add a new card in the deck and update the size (_size = _deck.Count)

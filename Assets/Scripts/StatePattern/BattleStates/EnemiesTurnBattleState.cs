@@ -13,13 +13,12 @@ public class EnemiesTurnBattleState : IState
 
     public void OnExit()
     {
-        
+        BattleManager.Instance.ExitEnemiesTurn();
         Debug.Log("Exit Enemy");
     }
 
     public void Tick()
     {
-        BattleManager.Instance.HandleEnemiesTurn();
         Debug.Log("Tick Enemy");
     }
 }

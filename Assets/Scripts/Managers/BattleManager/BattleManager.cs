@@ -25,6 +25,14 @@ public class BattleManager : MonoBehaviour
 
     #endregion
     
+    // Events ----------------------------------------------------------------------------------------------------------
+    public static Action<BattleManager> OnBattleStart;
+    public static Action<BattleManager> OnPlayerTurnStart;
+    public static Action<BattleManager> OnPlayerTurnEnd;
+    public static Action<BattleManager> OnEnemyTurnStart;
+    public static Action<BattleManager> OnEnemyTurnEnd;
+    public static Action<BattleManager> OnBattleEnd;
+
     // State Pattern ---------------------------------------------------------------------------------------------------
     
     #region Battle States
@@ -38,7 +46,8 @@ public class BattleManager : MonoBehaviour
     
     // State Machine
     private StateMachine _stateMachine;
-    
+    private float _endTurnTime = 0.5f;
+
     // Public Methods --------------------------------------------------------------------------------------------------
 
     #region Getters and Setters
@@ -61,11 +70,12 @@ public class BattleManager : MonoBehaviour
             _instance = this;
         }
         
-        UnitsManager.OnEnemiesTurnEnd += UnitsManagerOnOnEnemiesTurnEnd;
+        UnitsManager.OnEnemiesTurnEnd += SetTurnToPlayerTurn;
     }
 
-    private void UnitsManagerOnOnEnemiesTurnEnd()
+    private void SetTurnToPlayerTurn()
     {
+        OnPlayerTurnStart?.Invoke(this);
         _isPlayerTurn = true;
     }
 
@@ -108,7 +118,7 @@ public class BattleManager : MonoBehaviour
     {
         _gridManager.GenerateGrid();
         _unitsManager.SpawnHeroes();
-        _unitsManager.SpawnEnemies();
+        _unitsManager.HandleSpawnEnemies();
 
         _isPlayerTurn = true;
         
@@ -126,45 +136,33 @@ public class BattleManager : MonoBehaviour
     {
         _isPlayerTurn = true;
         
+        OnPlayerTurnStart?.Invoke(this);
+        
         _uiBattleManager.EndTurnButton.interactable = true;
-        
-        _unitsManager.SetSelectedHero(_unitsManager.Heroes[0]);
-        
-        foreach (var hero in _unitsManager.Heroes)
-        {
-            hero.CurrentMana = hero.MaxMana;
-        }
+        _uiBattleManager.SetCurrentTurnText("Player Turn");
     }
 
     public void ExitHeroesTurn()
     {
         _uiBattleManager.EndTurnButton.interactable = false;
         
-        _unitsManager.SetSelectedHero(null);
+        OnPlayerTurnEnd?.Invoke(this);
     }
 
     public void StartEnemiesTurn()
     {
+        OnEnemyTurnStart?.Invoke(this);
         _unitsManager.CurrentEnemyPlaying = _unitsManager.Enemies[0];
+        _uiBattleManager.SetCurrentTurnText("Enemies Turn");
     }
     
-    public void HandleEnemiesTurn()
+    public void ExitEnemiesTurn()
     {
-        Debug.Log(_unitsManager.CurrentEnemyPlaying.Path.Count);
-        if (_unitsManager.CurrentEnemyPlaying.Path.Count == 0)
-        {
-            Debug.Log("FIND PATH");
-            _unitsManager.CurrentEnemyPlaying.FindAvailablePathToTarget(_unitsManager.Heroes[0].transform.position);
-        }
-        
-        
-        //StartCoroutine(TmpEnemyCo());
+        _unitsManager.CurrentEnemyPlaying = null;
     }
 
-    public IEnumerator TmpEnemyCo()
+    private IEnumerator EndTurnCo()
     {
-        yield return new WaitForSeconds(1f);
-
-        _isPlayerTurn = true;
+        yield return new WaitForSeconds(_endTurnTime);
     }
 }

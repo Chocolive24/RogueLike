@@ -48,4 +48,11 @@ public class BaseMoveCard : BaseCard
         base.Update();
         _cardEffectTxt.text = "Move " + _aeraOfEffect + "\n squares \n";
     }
+
+    public override void GetAvailableTiles()
+    {
+        _availableTiles = _tilemapsManager.GetAvailableTilesInRange(
+            _gridManager.WorldToCellCenter(GetStartingTile().transform.position),
+            _aeraOfEffect, false, false);
+    }
 }

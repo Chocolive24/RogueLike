@@ -43,13 +43,14 @@ public class DiscardDeckController : MonoBehaviour
         _carNbrTxt.text = _discardDeck.Count.ToString();
     }
 
-    public void ShuffleCardsBackToDeck(List<BaseCard> deck)
+    public void ShuffleCardsBackToDeck(DeckController deckController)
     {
         foreach (var card in _discardDeck)
         {
-            deck.Add(card);
+            deckController.Deck.Add(card);
         }
         
+        deckController.UpdateCardTxtNbr();
         _discardDeck.Clear();
     }
 }

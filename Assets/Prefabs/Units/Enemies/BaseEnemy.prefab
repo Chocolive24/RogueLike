@@ -89,8 +89,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _unitName: Enemy
   _faction: 1
-  _hp: 10
+  _maxHP: 0
   _attack: 5
   _shield: 0
   _movement: 5
-  _distanceFromThePlayer: 0
+  _speed: 8
+  _attackRange: 0
+  _maxNbrOfAttackPerTurn: 1
