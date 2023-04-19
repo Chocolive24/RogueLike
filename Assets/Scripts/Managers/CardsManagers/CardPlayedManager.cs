@@ -47,7 +47,6 @@ public class CardPlayedManager : MonoBehaviour
     
     // References ------------------------------------------------------------------------------------------------------
     private TilemapsManager _tilemapsManager;
-    private UnitsManager _unitsManager;
     private GridManager _gridManager;
     
     // Getters and Setters ---------------------------------------------------------------------------------------------
@@ -60,9 +59,6 @@ public class CardPlayedManager : MonoBehaviour
         set => _currentCard = value;
     }
     public bool HasACardOnIt => _hasAMoveCardOnIt || _hasAnAttackCardOnIt || _hasADefendCardOnIt;
-    public bool HasAMoveCardOnIt => _hasAMoveCardOnIt;
-    public bool HasAnAttackCardOnIt => _hasAnAttackCardOnIt;
-    public bool HasADefendCardOnIt => _hasADefendCardOnIt;
 
     public Transform[] CardSlots => _cardSlots;
     public bool[] AvailableCardSlots
@@ -92,19 +88,18 @@ public class CardPlayedManager : MonoBehaviour
         {
             _availableCardSlots[i] = true;
         }
+
+        TileCell.OnTileSelected += PlayCurrentCard;
     }
     
     // Start is called before the first frame update
     void Start()
     {
         _tilemapsManager = TilemapsManager.Instance;
-        _unitsManager = UnitsManager.Instance;
         _gridManager = GridManager.Instance;
         
         Cursor.SetCursor(_baseMouseCursor, Vector2.zero, CursorMode.ForceSoftware);
     }
-
-    // TODO MAKE A CLICK SYSTEM LIKE INSCRYPTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     private void OnTriggerEnter2D(Collider2D col)
     {
@@ -147,6 +142,14 @@ public class CardPlayedManager : MonoBehaviour
             card.DrawTilemap(card.AvailableTiles, card.AoeTilemap, _tilemapsManager.GetRuleTile(card));
         }
     }
+    
+    private void PlayCurrentCard(TileCell tile)
+    {
+        if (_currentCard)
+        {
+            _currentCard.ActivateCardEffect(tile);
+        }
+    }
 
     /// <summary>
     /// Manage the actions to do when a card has been played.
@@ -157,30 +160,36 @@ public class CardPlayedManager : MonoBehaviour
         
         // Free the current card slot.
         _availableCardSlots[_currentCard.HandIndex] = true;
+
+        _currentCard.ResetProperties();
         
         ClearCurrentCardTilemap();
 
         MoveCardToHisDiscardPile();
 
         ClearCardLocation();
-        
+
         // TODO Change the mouse cursor
     }
     
     private void ClearCurrentCardTilemap()
     {
-        Destroy(_currentCard.AoeTilemap.gameObject);
-
-        if (_currentCard.CardType == CardType.MoveCard)
+        if (_currentCard)
         {
-            BaseMoveCard card = _currentCard.GetComponent<BaseMoveCard>();
-            
-            foreach (var item in card.Path)
+            Destroy(_currentCard.AoeTilemap.gameObject);
+
+            if (_currentCard.CardType == CardType.MoveCard)
             {
-                var tile = _gridManager.GetTileAtPosition(item.Key);
-                tile.Arrow.SetActive(false);
+                BaseMoveCard card = _currentCard.GetComponent<BaseMoveCard>();
+            
+                foreach (var item in card.Path)
+                {
+                    var tile = _gridManager.GetTileAtPosition(item.Key);
+                    tile.Arrow.SetActive(false);
+                }
             }
         }
+        
     }
     
     private void MoveCardToHisDiscardPile()
@@ -189,20 +198,31 @@ public class CardPlayedManager : MonoBehaviour
         {
             if (_currentCard.HeroClass == HeroClass.PALADIN)
             {
-                _paladinMovDiscDeckContr.DiscardDeck.Add(_currentCard);
+                MoveToDiscardPile(_paladinMovDiscDeckContr);
             }
         }
         else if (_currentCard.CardType == CardType.Attackcard)
         {
             if (_currentCard.HeroClass == HeroClass.PALADIN)
             {
-                _paladinMainDiscDeckContr.DiscardDeck.Add(_currentCard);
+                MoveToDiscardPile(_paladinMainDiscDeckContr);
             }
         }
         
-        _currentCard.gameObject.SetActive(false);
+        _currentCard.HasBeenPlayed = true;
     }
-    
+
+    private void MoveToDiscardPile(DiscardDeckController discardDeckController)
+    {
+        discardDeckController.DiscardDeck.Add(_currentCard);
+        
+        var currentCardTrans = _currentCard.transform;
+        var moveDeckTrans = discardDeckController.transform;
+        
+        currentCardTrans.position = moveDeckTrans.position;
+        currentCardTrans.parent = moveDeckTrans;
+    }
+
     private void ClearCardLocation()
     {
         _currentCard = null;
@@ -210,5 +230,13 @@ public class CardPlayedManager : MonoBehaviour
         _hasAMoveCardOnIt = false;
         _hasAnAttackCardOnIt = false;
         _hasADefendCardOnIt = false;
+    }
+
+    public void ResetSlots()
+    {
+        for (int i = 0; i < _availableCardSlots.Length; i++)
+        {
+            _availableCardSlots[i] = true;
+        }
     }
 }

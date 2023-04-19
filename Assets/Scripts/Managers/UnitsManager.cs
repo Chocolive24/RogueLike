@@ -86,6 +86,7 @@ public class UnitsManager : MonoBehaviour
         {
             var rndSpawnedTile = _gridManager.GetHeroSpawnTile();
             hero.transform.position = rndSpawnedTile.transform.position;
+            //hero.transform.position = _gridManager.WorldToCellCenter(new Vector3(0, 7,0));
 
             hero.PreviousOccupiedTiles = hero.GetOccupiedTiles();
 
@@ -134,10 +135,10 @@ public class UnitsManager : MonoBehaviour
                 SpawnEnemy(2, EnemyType.TANK);
                 break;
             case EnemyType.SPAWNER:
-                SpawnEnemy(2, EnemyType.SPAWNER);
+                SpawnEnemy(1, EnemyType.SPAWNER);
                 break;
             case EnemyType.MIX:
-                SpawnEnemy(4, EnemyType.MIX);
+                SpawnEnemy(1, EnemyType.MIX);
                 break;
         }
         
@@ -164,11 +165,75 @@ public class UnitsManager : MonoBehaviour
             
             if (enemyType == EnemyType.MIX)
             {
+                // BaseEnemy enemyData2;
+                //
+                // BaseEnemy enemyData3;
+                //
+                // enemyData = GetAnEnemyByType(EnemyType.GOBLIN);
+                //
+                // var spawnedEnemy = Instantiate(enemyData);
+                //
+                // spawnedEnemy.transform.position = _gridManager.WorldToCellCenter(new Vector3(0, 6.5f, 0));
+                //
+                // spawnedEnemy.PreviousOccupiedTiles = spawnedEnemy.GetOccupiedTiles();
+                //
+                // foreach (var tile in spawnedEnemy.GetOccupiedTiles())
+                // {
+                //     tile.SetUnit(spawnedEnemy);
+                // }
+                //
+                // //randomSpawnTile.SetUnit(spawnedEnemy);
+                // _enemies.Add(spawnedEnemy);
+                //
+                // spawnedEnemy.OnTurnFinished += SetNextEnemyTurn;
+                // spawnedEnemy.OnDeath += HandleEnemyDeath;
+                //
+                // // ----------------------------------------------------------------------------------------
+                //
+                // // enemyData = GetAnEnemyByType(EnemyType.GOBLIN);
+                // //
+                // // var spawnedEnemy = Instantiate(enemyData);
+                // //
+                // // spawnedEnemy.transform.position = _gridManager.WorldToCellCenter(new Vector3(0, 1.5f, 0));
+                // //
+                // // spawnedEnemy.PreviousOccupiedTiles = spawnedEnemy.GetOccupiedTiles();
+                // //
+                // // foreach (var tile in spawnedEnemy.GetOccupiedTiles())
+                // // {
+                // //     tile.SetUnit(spawnedEnemy);
+                // // }
+                // //
+                // // //randomSpawnTile.SetUnit(spawnedEnemy);
+                // // _enemies.Add(spawnedEnemy);
+                // //
+                // // spawnedEnemy.OnTurnFinished += SetNextEnemyTurn;
+                // // spawnedEnemy.OnDeath += HandleEnemyDeath;
+                //
+                // // ----------------------------------------------------------------------------------------
+                //
+                // enemyData2 = GetAnEnemyByType(EnemyType.TANK);
+                //
+                // var spawnedEnemy2 = Instantiate(enemyData2);
+                //
+                // spawnedEnemy2.transform.position = _gridManager.WorldToCellCenter(new Vector3(3, 6.5f, 0));
+                //
+                // spawnedEnemy2.PreviousOccupiedTiles = spawnedEnemy2.GetOccupiedTiles();
+                //
+                // foreach (var tile in spawnedEnemy2.GetOccupiedTiles())
+                // {
+                //     tile.SetUnit(spawnedEnemy2);
+                // }
+                //
+                // //randomSpawnTile.SetUnit(spawnedEnemy);
+                // _enemies.Add(spawnedEnemy2);
+                //
+                // spawnedEnemy2.OnTurnFinished += SetNextEnemyTurn;
+                // spawnedEnemy2.OnDeath += HandleEnemyDeath;
+
                 do
                 {
                     enemyData = GetRandomUnit<BaseEnemy>(Faction.Enemy);
                 } while (enemyData.UnitName == "Minion");
-
             }
             else
             {
@@ -179,7 +244,7 @@ public class UnitsManager : MonoBehaviour
             
             var randomSpawnTile = _gridManager.GetEnemySpawnTile();
             spawnedEnemy.transform.position = randomSpawnTile.transform.position;
-
+            
             spawnedEnemy.PreviousOccupiedTiles = spawnedEnemy.GetOccupiedTiles();
             
             foreach (var tile in spawnedEnemy.GetOccupiedTiles())

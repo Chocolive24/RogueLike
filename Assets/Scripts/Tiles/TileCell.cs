@@ -46,6 +46,9 @@ public class TileCell : MonoBehaviour
 
     #endregion
     
+    // Events ----------------------------------------------------------------------------------------------------------
+    public static event Action<TileCell> OnTileSelected; 
+
     // Getters and Setters ---------------------------------------------------------------------------------------------
 
     #region Getters and Setters
@@ -210,59 +213,7 @@ public class TileCell : MonoBehaviour
             return;
         }
         
-        // If there is a unit on the tile we clicked.
-        if (_occupiedUnit != null)
-        {
-            // // If the unit is a hero, set this hero to selected.
-            // if (_occupiedUnit.Faction == Faction.Hero)
-            // {
-            //     _unitsManager.SetSelectedHero((BaseHero)_occupiedUnit);
-            // }
-            // Else, destroy the enemy on the tile we clicked.
-            // else
-            // {
-                var enemy = (BaseEnemy)_occupiedUnit;
-
-                enemy.IsSelected = !enemy.IsSelected;
-
-                if (_unitsManager.HeroPlayer != null && 
-                    _cardPlayedManager.HasAnAttackCardOnIt)
-                {
-                    // potential stuff to do
-                    //enemy.TakeDamage();
-                    // or
-                    // UnitsManager.INstance.SelectedHero.Attack();
-                    
-                    if (_cardPlayedManager.CurrentCard.AvailableTiles.ContainsKey(this.Position) && enemy != null)
-                    {
-                        BaseAttackCard attackCard = (BaseAttackCard)_cardPlayedManager.CurrentCard;
-                        enemy.IsSelected = false;
-                        enemy.TakeDamage(attackCard.Damage);
-                        //UnitsManager.Instance.SetSelectedHero(null);
-                        _cardPlayedManager.HandlePlayedCard();
-                    }
-                }
-            //}
-        }
-        
-        // If there is no unit on the tile we clicked on.
-        else
-        {
-            //Check if we have a selected hero and if we have played a moveCard.
-            if (_unitsManager.HeroPlayer != null  && 
-                _cardPlayedManager.HasAMoveCardOnIt)
-            {
-                // If so, move the hero to the tile where the player clicked if it is in the range of the aoe moveCard
-                // and it is walkable.
-                if (_cardPlayedManager.CurrentCard.AvailableTiles.ContainsKey(this.Position) && Walkable)
-                {
-                    _unitsManager.HeroPlayer.FindAvailablePathToTarget(transform.position, 0,
-                        false, false, false);
-                    //UnitsManager.Instance.SetSelectedHero(null);
-                    _cardPlayedManager.HandlePlayedCard();
-                }
-            }
-        }
+        OnTileSelected?.Invoke(this);
     }
     
     private void CheckForEnemyTilemapToCreate()
@@ -307,10 +258,9 @@ public class TileCell : MonoBehaviour
         {
             if (_occupiedUnit.TryGetComponent<BaseEnemy>(out BaseEnemy enemy))
             {
-                if (!enemy.IsSelected && enemy.MovementTilemap)
+                if (!enemy.IsSelected)
                 {
-                    Destroy(enemy.MovementTilemap.gameObject);
-                    Destroy(enemy.AttackTilemap.gameObject);
+                    enemy.DestroyTilemaps();
                 }
             }
         }

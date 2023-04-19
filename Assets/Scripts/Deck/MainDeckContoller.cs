@@ -11,6 +11,7 @@ public class MainDeckContoller : DeckController
     // Start is called before the first frame update
     protected override void Start()
     {
+        _unitsManager = UnitsManager.Instance;
         InstantiateBasicCard(CardsManager.Instance.ScrBasicAttackCards, _basicAttCardNbr);
         base.Start();
     }

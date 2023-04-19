@@ -4,9 +4,17 @@ using UnityEngine;
 
 public class DrawnCardState : IState
 {
+    public DrawnCardState(BaseCard card)
+    {
+        _card = card;
+    }
+
+    private BaseCard _card;
+    
+    // Methods ---------------------------------------------------------------------------------------------------------
     public void OnEnter()
     {
-        Debug.Log("Enter Drawn");
+        _card.EnterDrawn();
     }
 
     public void OnExit()

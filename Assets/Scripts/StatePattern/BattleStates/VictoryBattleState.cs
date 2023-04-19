@@ -4,23 +4,22 @@ using UnityEngine;
 
 public class VictoryBattleState : IState
 {
-    public VictoryBattleState(GameManager gameManger)
+    public VictoryBattleState(BattleManager battleManager)
     {
-        _gameManager = gameManger;
+        _battleManager = battleManager;
     }
-
-    private GameManager _gameManager;
+    
+    private BattleManager _battleManager;
     
     // Methods ---------------------------------------------------------------------------------------------------------
     public void OnEnter()
     {
-        Debug.Log("Enter Victory");
-        // Create rewards
+        _battleManager.EnterVictory();
     }
 
     public void OnExit()
     {
-        _gameManager.IsInBattleState = false;
+        _battleManager.ExitVictory();
     }
 
     public void Tick()

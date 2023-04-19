@@ -42,8 +42,12 @@ public class BaseHero : BaseUnit
     // protected int _currentTargetIndex1 = 0;
     //
     // #endregion
-    
+
+    protected List<BaseCard> _cardHand = new List<BaseCard>();
+
     protected int _currentMana;
+
+    protected int _golds;
 
     private bool _canPlay;
 
@@ -52,6 +56,9 @@ public class BaseHero : BaseUnit
     // private GridManager _gridManager;
     private CardPlayedManager _cardPlayedManager;
     
+    // Events ----------------------------------------------------------------------------------------------------------
+    public static event Action<BaseHero> OnMovement; 
+
     // Getters and Setters ---------------------------------------------------------------------------------------------
 
     #region Getters and Setters
@@ -82,8 +89,11 @@ public class BaseHero : BaseUnit
         GameManager.OnGameStateChange += GameManagerOnOnGameStateChange;
         BattleManager.OnPlayerTurnStart += StartTurn;
         BattleManager.OnPlayerTurnEnd += EndTurn;
+        BattleManager.OnBattleEnd += PutAllCardsInDecks;
+
+        _cardHand = new List<BaseCard>();
     }
-    
+
     private void GameManagerOnOnGameStateChange()
     {
         _targetPos = null;
@@ -94,11 +104,16 @@ public class BaseHero : BaseUnit
         //_unitsManager.SetSelectedHero(this);
         _currentMana = _maxMana;
         _canPlay = true;
+        
+        _mainDeck.SetButtonInteractavity(true);
+        _movementDeck.SetButtonInteractavity(true);
     }
 
     private void EndTurn(BattleManager obj)
     {
         _canPlay = false;
+        _mainDeck.SetButtonInteractavity(false);
+        _movementDeck.SetButtonInteractavity(false);
         //_unitsManager.SetSelectedHero(null);
     }
     
@@ -107,7 +122,6 @@ public class BaseHero : BaseUnit
     {
         base.Start();
         _cardPlayedManager = CardPlayedManager.Instance;
-        
         
         InitializeDecks();
         
@@ -123,7 +137,9 @@ public class BaseHero : BaseUnit
         
         MoveOnGrid();
         
-        HandleShuffleCardsBackToDeck();
+        ShuffleCardsBackToDeck();
+        
+        Debug.Log(_cardHand.Count);
     }
 
     public override void FindAvailablePathToTarget(Vector3 targetPos, int minimumPathCunt, 
@@ -131,9 +147,21 @@ public class BaseHero : BaseUnit
     {
         _availableTiles = _cardPlayedManager.CurrentCard.AvailableTiles;
         base.FindAvailablePathToTarget(targetPos, 0, countHeroes, countEnemies, countWalls);
+
+        if (_path.Count> 0)
+        {
+            OnMovement?.Invoke(this);
+        }
     }
 
-    private void HandleShuffleCardsBackToDeck()
+
+    protected override void StopThePath()
+    {
+        base.StopThePath();
+        OnMovement?.Invoke(this);
+    }
+
+    private void ShuffleCardsBackToDeck()
     {
         if (_movDiscardDeck.DiscardDeck.Count >= _movementDeck.Size)
         {
@@ -192,5 +220,37 @@ public class BaseHero : BaseUnit
                 _targetPos = new Vector3(mousePos.x, mousePos.y, 0);
             }
         }
+    }
+    
+    private void PutAllCardsInDecks(BattleManager obj)
+    {
+        foreach (var card in _cardHand)
+        {
+            if (card.CardType == CardType.Attackcard)
+            {
+                _mainDeck.AddCard(card);
+            }
+            else if (card.CardType == CardType.MoveCard)
+            {
+                _movementDeck.AddCard(card);
+            }
+
+            _cardPlayedManager.ResetSlots();
+        }
+
+        _cardHand.Clear();
+        
+        _movDiscardDeck.ShuffleCardsBackToDeck(_movementDeck);
+        _mainDiscardDeck.ShuffleCardsBackToDeck(_mainDeck);
+    }
+
+    public void AddCardToHand(BaseCard card)
+    {
+        _cardHand.Add(card);
+    }
+
+    public void RemoveCardFromHand(BaseCard card)
+    {
+        _cardHand.Remove(card);
     }
 }

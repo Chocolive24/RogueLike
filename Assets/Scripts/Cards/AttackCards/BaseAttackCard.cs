@@ -15,6 +15,8 @@ public class BaseAttackCard : BaseCard
 
     // Attributes ------------------------------------------------------------------------------------------------------
     [SerializeField] private int _damage;
+
+    private bool _hasPerformed;
     
     // References ------------------------------------------------------------------------------------------------------
 
@@ -35,7 +37,35 @@ public class BaseAttackCard : BaseCard
         base.Update();
         _cardEffectTxt.text = "Deal " + _damage + "\n damage \n";
     }
-    
+
+    public override void ActivateCardEffect(TileCell tile)
+    {
+        if (tile.OccupiedUnit)
+        {
+            if (tile.OccupiedUnit.Faction == Faction.Enemy)
+            {
+                var enemy = (BaseEnemy)tile.OccupiedUnit;
+
+                enemy.IsSelected = !enemy.IsSelected;
+
+                if (_unitsManager.HeroPlayer)
+                {
+                    if (_availableTiles.ContainsKey(tile.transform.position) && enemy != null)
+                    {
+                        enemy.IsSelected = false;
+                        enemy.TakeDamage(_damage);
+                        _hasPerformed = true;
+                    }
+                }
+            }
+        }
+    }
+
+    protected override bool CheckIfHasPerformed()
+    {
+        return _hasPerformed;
+    }
+
     public override void DrawTilemap(Dictionary<Vector3, int> availableNeighbours, Tilemap tilemap, RuleTile ruleTile)
     {
         if (availableNeighbours.ContainsKey(_gridManager.CurrentRoomTilemap.WorldToCell(
@@ -46,5 +76,10 @@ public class BaseAttackCard : BaseCard
         }
         
         base.DrawTilemap(availableNeighbours, tilemap, ruleTile);
+    }
+
+    public override void ResetProperties()
+    {
+        _hasPerformed = false;
     }
 }

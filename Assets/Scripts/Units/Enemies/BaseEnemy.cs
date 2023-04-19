@@ -230,6 +230,8 @@ public class BaseEnemy : BaseUnit
             if (_avalaiblePath.Count > 0)
             {
                 _targetPos = _avalaiblePath.First();
+                _isSelected = false;
+                DestroyTilemaps();
             }
             else
             {
@@ -285,6 +287,16 @@ public class BaseEnemy : BaseUnit
         _nbrOfMovementPerformed++;
     }
 
+
+    public void DestroyTilemaps()
+    {
+        if (_movementTilemap)
+        {
+            Destroy(_movementTilemap.gameObject);
+            Destroy(_attackTilemap.gameObject);
+        }
+    }
+    
     protected override void Kill()
     {
         Destroy(_movementTilemap.gameObject);

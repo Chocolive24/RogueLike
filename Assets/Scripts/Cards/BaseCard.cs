@@ -9,11 +9,10 @@ using UnityEngine.Tilemaps;
 
 public enum Rarety
 {
-    Basic,
-    Common,
-    Rare,
-    Epic,
-    Legendary
+    Basic = 10,
+    Rare = 7,
+    Epic = 3,
+    Legendary = 1
 }
 
 public enum CardType
@@ -74,14 +73,21 @@ public abstract class BaseCard : MonoBehaviour
 
     protected StateMachine _stateMachine;
 
+    protected CollectibleCardState _collectibleCardState;
     protected InDeckCardState _inDeckCardState;
     protected DrawnCardState _drawnCardState;
     protected PerfomCardState _perfomCardState;
     protected DiscardedCardState _discardedCardState;
 
     #endregion
+
+    private bool _isCollected = false;
     
     protected int _handIndex;
+
+    protected bool _canDrawTilemap = true;
+
+    protected bool _hasBeenPlayed = false;
 
     protected BoxCollider2D _boxCollider2D;
 
@@ -97,6 +103,11 @@ public abstract class BaseCard : MonoBehaviour
     
     #endregion
     
+    // Events ----------------------------------------------------------------------------------------------------------
+    public event Action<BaseCard> OnDrawn;
+    public event Action<BaseCard> OnPerformed; 
+    public event Action<BaseCard> OnCollected;
+
     // Getters and Setters ---------------------------------------------------------------------------------------------
 
     #region Getters and Setters
@@ -120,6 +131,18 @@ public abstract class BaseCard : MonoBehaviour
         set => _aoeTilemap = value;
     }
 
+    public bool IsCollected
+    {
+        get => _isCollected;
+        set => _isCollected = value;
+    }
+
+    public bool HasBeenPlayed
+    {
+        get => _hasBeenPlayed;
+        set => _hasBeenPlayed = value;
+    }
+
     #endregion
     
     // Methods ---------------------------------------------------------------------------------------------------------
@@ -130,8 +153,10 @@ public abstract class BaseCard : MonoBehaviour
         _boxCollider2D = GetComponent<BoxCollider2D>();
 
         GetTextes();
-    }
 
+        BaseHero.OnMovement += HandleTilemap;
+    }
+    
     private void GetTextes()
     {
         // Get all TextMeshPro Components in children from the highest in the hierarchy to the lowest.
@@ -145,6 +170,10 @@ public abstract class BaseCard : MonoBehaviour
         _manaNbrTxt.GetComponent<MeshRenderer>().sortingOrder = 2;
         _cardEffectTxt.GetComponent<MeshRenderer>().sortingLayerName = "Card";
         _cardEffectTxt.GetComponent<MeshRenderer>().sortingOrder = 2;
+
+        _canDrawTilemap = true;
+        
+        _manaNbrTxt.text = _manaCost.ToString();
     }
 
     // Start is called before the first frame update
@@ -166,70 +195,62 @@ public abstract class BaseCard : MonoBehaviour
 
     private void CreateStatePattern()
     {
+        _collectibleCardState = new CollectibleCardState(this);
         _inDeckCardState = new InDeckCardState();
-        _drawnCardState = new DrawnCardState();
-        _perfomCardState = new PerfomCardState();
-        _discardedCardState = new DiscardedCardState();
+        _drawnCardState = new DrawnCardState(this);
+        _perfomCardState = new PerfomCardState(this);
+        _discardedCardState = new DiscardedCardState(this);
 
         _stateMachine = new StateMachine();
 
+        _stateMachine.AddTransition(_collectibleCardState, _inDeckCardState, () => _isCollected);
         _stateMachine.AddTransition(_inDeckCardState, _drawnCardState, () => gameObject.activeSelf);
-        _stateMachine.AddTransition(_drawnCardState, _perfomCardState, () => CheckIfCanBePlayed());
-        _stateMachine.AddTransition(_perfomCardState, _inDeckCardState, () => !gameObject.activeSelf);
+        _stateMachine.AddTransition(_drawnCardState, _perfomCardState, () => CheckIfIsPlayed());
+        _stateMachine.AddTransition(_perfomCardState, _inDeckCardState, () => CheckIfHasPerformed());
         
-        _stateMachine.SetState(_inDeckCardState);
+        _stateMachine.SetState(_collectibleCardState);
     }
     
     // Update is called once per frame
     protected virtual void Update()
     {
         _stateMachine.Tick();
-        
-        _manaNbrTxt.text = _manaCost.ToString();
     }   
     
-    // private void OnMouseDrag()
-    // {
-    //     Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-    //
-    //     transform.position = new Vector3(mousePos.x, mousePos.y, 0f);
-    //     transform.rotation = Quaternion.identity;
-    // }
-
-    // private void OnMouseUp()
-    // {
-    //     if (CheckIfCanBePlayed())
-    //     {
-    //         StartCoroutine(InterpolateMoveCo(transform.position, 
-    //             _cardPlayedManager._cardLocation.transform.position));
-    //         
-    //         _cardPlayedManager.CurrentCard = this;
-    //     }
-    //     else 
-    //     {
-    //         StartCoroutine(InterpolateMoveCo(transform.position, 
-    //             _cardPlayedManager.CardSlots[_handIndex].position));
-    //     }
-    // }
-
     private void OnMouseDown()
+    {
+        if (_isCollected)
+        {
+            PlayCard();
+        }
+        else
+        {
+            _isCollected = true;
+            OnCollected?.Invoke(this);
+        }
+        
+    }
+
+    public void PlayCard()
     {
         if (_cardPlayedManager.CurrentCard == this)
         {
             transform.position = _cardPlayedManager.CardSlots[_handIndex].position;
         }
-        
+
         if (CheckIfCanBePlayed())
         {
             transform.position = _cardPlayedManager._cardLocation.transform.position;
-            
+
             _cardPlayedManager.CurrentCard = this;
         }
     }
 
+    public abstract void ActivateCardEffect(TileCell tile);
+
     protected virtual void OnMouseEnter()
     {
-        if (!_aoeTilemap)
+        if (!_aoeTilemap && _isCollected && _canDrawTilemap)
         {
             _aoeTilemap = _tilemapsManager.InstantiateTilemap(_name + " aoe");
             
@@ -249,9 +270,6 @@ public abstract class BaseCard : MonoBehaviour
     
     private bool CheckIfCanBePlayed()
     {
-        //bool isOutsideCardLimit = transform.position.y - (_boxCollider2D.bounds.size.y / 2) >
-                                  //_cardPlayedManager._cardLimit.transform.position.y;
-
         if (_unitsManager.HeroPlayer.CurrentMana == 0)
         {
             StopCoroutine(_uiBattleManager.NotEnoughManaCo());
@@ -261,6 +279,14 @@ public abstract class BaseCard : MonoBehaviour
         return !_cardPlayedManager.HasACardOnIt && 
                _unitsManager.HeroPlayer.CurrentMana > 0 && _unitsManager.HeroPlayer.CanPlay;
     }
+    
+    protected virtual bool CheckIfIsPlayed()
+    {
+        return transform.position == _cardPlayedManager._cardLocation.transform.position;
+    }
+
+    protected abstract bool CheckIfHasPerformed();
+    
     
     public virtual void GetAvailableTiles()
     {
@@ -280,9 +306,6 @@ public abstract class BaseCard : MonoBehaviour
     {
         foreach (var item in _gridManager.Tiles)
         {
-            //
-            // TODO CHANGE TO THE HERO CLASS OR SOMETHING ELSE THAN FACTION
-            //
             if (item.Value.OccupiedUnit)
             {
                 if (item.Value.OccupiedUnit.Faction == Faction.Hero)
@@ -293,6 +316,11 @@ public abstract class BaseCard : MonoBehaviour
         }
 
         return null;
+    }
+    
+    private void HandleTilemap(BaseHero obj)
+    {
+        _canDrawTilemap = !_canDrawTilemap;
     }
     
     private IEnumerator InterpolateMoveCo(Vector3 startPos, Vector3 endPos) 
@@ -313,4 +341,25 @@ public abstract class BaseCard : MonoBehaviour
         // therefore, this line ensures we end exactly where desired.
         transform.position = endPos;
     }
+
+    public void EnterDrawn()
+    {
+        OnDrawn?.Invoke(this);
+        gameObject.SetActive(true);
+        _hasBeenPlayed = false;
+    }
+
+    public void ExitPerform()
+    {
+        OnPerformed?.Invoke(this);
+        _cardPlayedManager.HandlePlayedCard();
+        gameObject.SetActive(false);
+    }
+
+    public void EnterDiscarded()
+    {
+        gameObject.SetActive(false);
+    }
+
+    public abstract void ResetProperties();
 }

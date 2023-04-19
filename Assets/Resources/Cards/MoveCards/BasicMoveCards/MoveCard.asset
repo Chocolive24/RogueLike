@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d7f6b2bfb842f04ea76e791a339f173, type: 3}
   m_Name: MoveCard
   m_EditorClassIdentifier: 
-  _cardType: 0
+  _rarety: 10
   _baseCardPrefab: {fileID: 2021867194539880225, guid: 06d074f0e2e1617428b0bd3dca985061, type: 3}

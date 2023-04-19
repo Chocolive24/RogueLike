@@ -10,6 +10,7 @@ public class MovementDeckController : DeckController
     // Start is called before the first frame update
     protected override void Start()
     {
+        _unitsManager = UnitsManager.Instance;
         InstantiateBasicCard(CardsManager.Instance.ScrBasicMoveCards, _basicMoveCardNbr);
         base.Start();
     }

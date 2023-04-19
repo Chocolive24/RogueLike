@@ -18,6 +18,9 @@ public abstract class DeckController : MonoBehaviour
 
     [SerializeField] protected Button _button;
     
+    // References ------------------------------------------------------------------------------------------------------
+    protected UnitsManager _unitsManager;
+    
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public List<BaseCard> Deck => _deck;
     public HeroClass HeroClass => _heroClass;
@@ -30,10 +33,9 @@ public abstract class DeckController : MonoBehaviour
 
     private void Awake()
     {
-        BattleManager.OnPlayerTurnStart += StartTurn;
-        BattleManager.OnEnemyTurnEnd += EndTurn;
+        
     }
-
+    
     // Start is called before the first frame update
     protected virtual void Start()
     {
@@ -46,14 +48,9 @@ public abstract class DeckController : MonoBehaviour
         
     }
     
-    private void StartTurn(BattleManager obj)
+    public virtual void SetButtonInteractavity(bool interactable)
     {
-        _button.interactable = true;
-    }
-
-    private void EndTurn(BattleManager obj)
-    {
-        _button.interactable = false;
+        _button.interactable = interactable;
     }
 
     protected void InstantiateBasicCard(List<ScriptableCard> scriptableCards, int cardNbr)
@@ -61,14 +58,27 @@ public abstract class DeckController : MonoBehaviour
         for (int i = 0; i < cardNbr; i++)
         {
             var card = CardsManager.Instance.InstantiateCard(scriptableCards, Rarety.Basic);
-            card.transform.parent = gameObject.transform;
             
-            card.gameObject.SetActive(false);
-
-            _deck.Add(card);
+            AddCard(card);
         }
+    }
+    
+    public void AddCard(BaseCard card)
+    {
+        card.transform.parent = gameObject.transform;
+
+        card.gameObject.SetActive(false);
+
+        card.IsCollected = true;
+
+        _deck.Add(card);
 
         _size = _deck.Count;
+        
+        UpdateCardTxtNbr();
+
+        card.OnDrawn += _unitsManager.HeroPlayer.AddCardToHand;
+        card.OnPerformed += _unitsManager.HeroPlayer.RemoveCardFromHand;
     }
 
     public void DrawACard()
@@ -98,6 +108,4 @@ public abstract class DeckController : MonoBehaviour
     {
         _carNbrTxt.text = _deck.Count.ToString();
     }
-    
-    // TODO AddCard() -> add a new card in the deck and update the size (_size = _deck.Count)
 }

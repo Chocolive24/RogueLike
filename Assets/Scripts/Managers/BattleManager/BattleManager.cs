@@ -12,8 +12,12 @@ public class BattleManager : MonoBehaviour
     public static BattleManager Instance { get { return _instance; } }
     
     // Attributes ------------------------------------------------------------------------------------------------------
-    private bool _isPlayerTurn;
+    [SerializeField] private int _rewardsNbr = 3;
     
+    private bool _isPlayerTurn;
+
+    private List<BaseCard> _cardRewards = new List<BaseCard>();
+
     // References ------------------------------------------------------------------------------------------------------
 
     #region Managers
@@ -22,16 +26,17 @@ public class BattleManager : MonoBehaviour
     private GridManager _gridManager;
     private UnitsManager _unitsManager;
     private UIBattleManager _uiBattleManager;
+    private CardsManager _cardsManager;
 
     #endregion
     
     // Events ----------------------------------------------------------------------------------------------------------
-    public static Action<BattleManager> OnBattleStart;
-    public static Action<BattleManager> OnPlayerTurnStart;
-    public static Action<BattleManager> OnPlayerTurnEnd;
-    public static Action<BattleManager> OnEnemyTurnStart;
-    public static Action<BattleManager> OnEnemyTurnEnd;
-    public static Action<BattleManager> OnBattleEnd;
+    public static event Action<BattleManager> OnBattleStart;
+    public static event Action<BattleManager> OnPlayerTurnStart;
+    public static event Action<BattleManager> OnPlayerTurnEnd;
+    public static event Action<BattleManager> OnEnemyTurnStart;
+    public static event Action<BattleManager> OnEnemyTurnEnd;
+    public static event Action<BattleManager> OnBattleEnd;
 
     // State Pattern ---------------------------------------------------------------------------------------------------
     
@@ -41,6 +46,7 @@ public class BattleManager : MonoBehaviour
     private EnemiesTurnBattleState _enemiesTurnBattleState;
     private VictoryBattleState _victoryBattleState;
     private DefeatBattleState _defeatBattleState;
+    private EndBattleState _endBattleState;
 
     #endregion
     
@@ -93,14 +99,16 @@ public class BattleManager : MonoBehaviour
         _gridManager = GridManager.Instance;
         _unitsManager = UnitsManager.Instance;
         _uiBattleManager = UIBattleManager.Instance;
+        _cardsManager = CardsManager.Instance;
     }
 
     private void CreateStatePattern()
     {
         _heroesTurnBattleState = new HeroesTurnBattleState(this, _uiBattleManager);
         _enemiesTurnBattleState = new EnemiesTurnBattleState();
-        _victoryBattleState = new VictoryBattleState(_gameManager);
+        _victoryBattleState = new VictoryBattleState(this);
         _defeatBattleState = new DefeatBattleState();
+        _endBattleState = new EndBattleState(this);
         
         _stateMachine = new StateMachine();
 
@@ -112,6 +120,8 @@ public class BattleManager : MonoBehaviour
             () => _unitsManager.Enemies.Count == 0);
         _stateMachine.AddTransition(_enemiesTurnBattleState, _victoryBattleState, 
             () => _unitsManager.Enemies.Count == 0);
+        _stateMachine.AddTransition(_victoryBattleState, _endBattleState, 
+            () => _cardRewards.Count < _rewardsNbr);
     }
     
     public void StartBattle()
@@ -129,7 +139,11 @@ public class BattleManager : MonoBehaviour
 
     public void EndBattle()
     {
+        _gridManager.DestroyGrid();
+        
         _uiBattleManager.BattlePanel.SetActive(false);
+        
+        OnBattleEnd?.Invoke(this);
     }
     
     public void EnterHeroesTurn()
@@ -164,5 +178,34 @@ public class BattleManager : MonoBehaviour
     private IEnumerator EndTurnCo()
     {
         yield return new WaitForSeconds(_endTurnTime);
+    }
+
+    public void EnterVictory()
+    {
+        _cardRewards = _cardsManager.CreateCardRewards(_rewardsNbr);
+
+        foreach (var card in _cardRewards)
+        {
+            card.OnCollected += HandleChosenReward;
+        }
+        
+        //_uiBattleManager.VictoryPanel.SetActive(true);
+    }
+
+    private void HandleChosenReward(BaseCard obj)
+    {
+        _cardRewards.Remove(obj);
+    }
+
+    public void ExitVictory()
+    {
+        foreach (var card in _cardRewards)
+        {
+            Destroy(card.gameObject);
+        }
+        
+        _cardRewards.Clear();
+
+        _gameManager.IsInBattleState = false;
     }
 }

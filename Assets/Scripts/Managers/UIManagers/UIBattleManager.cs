@@ -20,6 +20,7 @@ public class UIBattleManager : MonoBehaviour
     // References ------------------------------------------------------------------------------------------------------
     #region UIGameobjects
     [SerializeField] private GameObject _battlePanel;
+    [SerializeField] private GameObject _VictoryPanel;
     [SerializeField] private Button _endTurnButton;
     [SerializeField] private TextMeshProUGUI _currentTurnTxt;
     [SerializeField] private TextMeshProUGUI _notEnoughManaTxt;
@@ -40,6 +41,12 @@ public class UIBattleManager : MonoBehaviour
 
     public GameObject BattlePanel { get => _battlePanel; set => _battlePanel = value; }
 
+    public GameObject VictoryPanel
+    {
+        get => _VictoryPanel;
+        set => _VictoryPanel = value;
+    }
+
     public Button EndTurnButton => _endTurnButton;
 
     #endregion
@@ -57,6 +64,7 @@ public class UIBattleManager : MonoBehaviour
         }
         
         _battlePanel.SetActive(false);
+        _VictoryPanel.SetActive(false);
         _notEnoughManaTxt.gameObject.SetActive(false);
     }
     
@@ -120,22 +128,36 @@ public class UIBattleManager : MonoBehaviour
         
         _tileObject.GetComponentInChildren<TextMeshProUGUI>().text = tile.Name;
         _tileObject.SetActive(true);
-
-        if (tile.OccupiedUnit && _unitsManager.HeroPlayer.CanPlay)
+        
+        if (tile.OccupiedUnit)
         {
             string tileUnitObjTxt;
             tileUnitObjTxt = tile.OccupiedUnit.UnitName;
-
-            if (tile.OccupiedUnit.GetComponent<BaseEnemy>())
+            
+            BaseEnemy enemy = tile.OccupiedUnit.GetComponent<BaseEnemy>();
+            BaseHero hero = tile.OccupiedUnit.GetComponent<BaseHero>();
+            
+            if (enemy)
             {
-                tileUnitObjTxt += "\n dist. " + 
-                                  tile.OccupiedUnit.GetComponent<BaseEnemy>().CalculDistanceFromSelf(
-                                      _unitsManager.HeroPlayer.transform.position, 
-                                      true, false, false);
+                if (_unitsManager.HeroPlayer.CanPlay)
+                {
+                    tileUnitObjTxt += "\n dist. " + 
+                                      enemy.CalculDistanceFromSelf(
+                                          _unitsManager.HeroPlayer.transform.position, 
+                                          true, false, false);
+
+                    tileUnitObjTxt += "\n HP : " + enemy.CurrentHp.Value;
+                
+                    tileUnitObjTxt += "\n Damage : " + enemy.AttackDamage.Value;
+                }
+            }
+            else if (hero)
+            {
+                tileUnitObjTxt += "\n HP : " + hero.CurrentHp.Value;
             }
 
             _tileUnitObject.GetComponentInChildren<TextMeshProUGUI>().text = tileUnitObjTxt;
-            
+        
             _tileUnitObject.SetActive(true);
         }
     }

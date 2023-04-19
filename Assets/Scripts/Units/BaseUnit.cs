@@ -46,7 +46,7 @@ public class BaseUnit : MonoBehaviour
     // Events ----------------------------------------------------------------------------------------------------------
     public event Action<BaseUnit, int> OnDamageTaken;
     public event Action<BaseUnit> OnDeath;
-    
+
     // Getters and Setters ---------------------------------------------------------------------------------------------
 
     #region Getters and Setters
@@ -60,7 +60,9 @@ public class BaseUnit : MonoBehaviour
 
     public IntReference MaxHp => _maxHP;
     public IntReference CurrentHp => _currentHP;
-    
+
+    public IntReference AttackDamage => _attack;
+
     public IntReference Movement { get => _movement; }
 
     public List<TileCell> PreviousOccupiedTiles
@@ -183,7 +185,7 @@ public class BaseUnit : MonoBehaviour
 
             var nextTile = _gridManager.GetTileAtPosition(_avalaiblePath[_currentTargetIndex]);
             
-            if (nextTile.OccupiedUnit != null || GetOccupiedTiles().Contains(nextTile))
+            if (nextTile.OccupiedUnit || GetOccupiedTiles().Contains(nextTile))
             {
                 StopThePath();
             }
@@ -335,7 +337,7 @@ public class BaseUnit : MonoBehaviour
 
         return false;
     }
-    
+
     public int CalculDistanceFromSelf(Vector3 endPos, bool countHeroes, bool countEnemies, bool countWalls)
     {
         _path = FindPath(transform.position, endPos, 

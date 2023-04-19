@@ -14,6 +14,8 @@ public class BaseMoveCard : BaseCard
     }
 
     // Attributes ------------------------------------------------------------------------------------------------------
+    private Vector3? _targetPos;
+    
     private Dictionary<Vector3, int> _path;
     private Tilemap _pathTilemap;
     
@@ -49,10 +51,48 @@ public class BaseMoveCard : BaseCard
         _cardEffectTxt.text = "Move " + _aeraOfEffect + "\n squares \n";
     }
 
+    public override void ActivateCardEffect(TileCell tile)
+    {
+        if (!tile.OccupiedUnit)
+        {
+            //Check if we have a selected hero and if we have played a moveCard.
+            if (_unitsManager.HeroPlayer)
+            {
+                // If so, move the hero to the tile where the player clicked if it is in the range of the aoe moveCard
+                // and it is walkable.
+                if (_availableTiles.ContainsKey(tile.transform.position) && tile.Walkable)
+                {
+                    _targetPos = tile.transform.position;
+
+                    if (_targetPos.HasValue)
+                    {
+                        _unitsManager.HeroPlayer.FindAvailablePathToTarget(_targetPos.Value, 0,
+                            false, false, false);
+                    }
+                }
+            }
+        }
+    }
+
+    protected override bool CheckIfHasPerformed()
+    {
+        if (_targetPos.HasValue)
+        {
+            return Vector3.Distance(_unitsManager.HeroPlayer.transform.position, _targetPos.Value) < 0.1f;
+        }
+
+        return false;
+    }
+
     public override void GetAvailableTiles()
     {
         _availableTiles = _tilemapsManager.GetAvailableTilesInRange(
             _gridManager.WorldToCellCenter(GetStartingTile().transform.position),
             _aeraOfEffect, false, false);
+    }
+
+    public override void ResetProperties()
+    {
+        _targetPos = null;
     }
 }

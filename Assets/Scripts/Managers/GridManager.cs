@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Tilemaps;
 using Random = UnityEngine.Random;
 
@@ -46,16 +47,6 @@ public class GridManager : MonoBehaviour
 
     private void Start()
     {
-        _tiles = new Dictionary<Vector3, TileCell>();
-        
-        TileCell[] _roomTiles = _room.GetComponentsInChildren<TileCell>();
-
-        foreach (var tile in _roomTiles)
-        {
-            _tiles[WorldToCellCenter(tile.transform.position)] = tile;
-            Debug.Log(tile);
-        }
-        
         
     }
     
@@ -63,19 +54,32 @@ public class GridManager : MonoBehaviour
     {
         _tiles = new Dictionary<Vector3, TileCell>();
         
-        TileCell[] _roomTiles = _room.GetComponentsInChildren<TileCell>();
+        TileCell[] roomTiles = _room.GetComponentsInChildren<TileCell>();
 
-        foreach (var tile in _roomTiles)
+        foreach (var tile in roomTiles)
         {
             _tiles[WorldToCellCenter(tile.transform.position)] = tile;
         }
-        
-        Debug.Log(_tiles.Count);
-        
+
         _camTrans.transform.position = new Vector3((float)_width / 2f - 0.5f, 
                      (float)_height / 2f - 0.5f -1f, -10);
     }
 
+    public void DestroyGrid()
+    {
+        foreach (var item in _tiles)
+        {
+            TileCell tile = GetTileAtPosition(item.Key);
+
+            if (tile)
+            {
+                tile.OccupiedUnit = null;
+            }
+        }
+        
+        _tiles.Clear();
+    }
+    
     public TileCell GetHeroSpawnTile()
     {
         return _tiles.Where(t => t.Value.Walkable).OrderBy
@@ -116,10 +120,8 @@ public class GridManager : MonoBehaviour
         {
             return tileCell;
         }
-        else
-        {
-            return null;
-        }
+        
+        return null;
     }
 
     public Vector3 WorldToCellCenter(Vector3 position)

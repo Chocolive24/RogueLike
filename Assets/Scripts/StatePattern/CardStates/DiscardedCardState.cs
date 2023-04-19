@@ -4,9 +4,17 @@ using UnityEngine;
 
 public class DiscardedCardState : IState
 {
+    public DiscardedCardState(BaseCard card)
+    {
+        _card = card;
+    }
+
+    private BaseCard _card;
+    
+    // Methods ---------------------------------------------------------------------------------------------------------
     public void OnEnter()
     {
-        Debug.Log("Enter Discarded");
+        //_card.EnterDiscarded();
     }
 
     public void OnExit()

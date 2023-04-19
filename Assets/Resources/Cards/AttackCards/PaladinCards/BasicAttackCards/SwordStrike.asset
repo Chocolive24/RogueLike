@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d7f6b2bfb842f04ea76e791a339f173, type: 3}
   m_Name: SwordStrike
   m_EditorClassIdentifier: 
-  _cardType: 1
+  _rarety: 10
   _baseCardPrefab: {fileID: -383348146307332146, guid: 2efd38a3de17d1349b84736c4bbca3ab, type: 3}
