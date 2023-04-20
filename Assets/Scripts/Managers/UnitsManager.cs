@@ -30,6 +30,8 @@ public class UnitsManager : MonoBehaviour
 
     // Events ----------------------------------------------------------------------------------------------------------
     public static event Action OnEnemiesTurnEnd;
+
+    public static event Action<UnitsManager> OnHeroSpawn;
     
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public BaseHero HeroPlayer => _heroes[0];
@@ -56,11 +58,16 @@ public class UnitsManager : MonoBehaviour
         
         _heroes = new List<BaseHero>();
         _enemies = new List<BaseEnemy>();
-        
-        
+
+        //Room.OnRoomEnter += SpawnEntities;
     }
 
-    
+    // private void SpawnEntities(Room room)
+    // {
+    //     SpawnHeroes();
+    //     HandleSpawnEnemies();
+    // }
+
 
     // Start is called before the first frame update
     void Start()
@@ -72,6 +79,8 @@ public class UnitsManager : MonoBehaviour
         var randomPrefab = GetRandomUnit<BaseHero>(Faction.Hero);
         var spawnedHero = Instantiate(randomPrefab, new Vector3(7.5f, -10, 0), Quaternion.identity);
         _heroes.Add(spawnedHero);
+        
+        OnHeroSpawn?.Invoke(this);
     }
 
     // Update is called once per frame
@@ -84,8 +93,8 @@ public class UnitsManager : MonoBehaviour
     {
         foreach (var hero in _heroes)
         {
-            var rndSpawnedTile = _gridManager.GetHeroSpawnTile();
-            hero.transform.position = rndSpawnedTile.transform.position;
+            var spawnedTile = _gridManager.GetHeroSpawnTile();
+            hero.transform.position = spawnedTile.transform.position;
             //hero.transform.position = _gridManager.WorldToCellCenter(new Vector3(0, 7,0));
 
             hero.PreviousOccupiedTiles = hero.GetOccupiedTiles();

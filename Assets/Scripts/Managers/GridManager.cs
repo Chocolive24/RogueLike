@@ -16,13 +16,14 @@ public class GridManager : MonoBehaviour
     
     private Dictionary<Vector3, TileCell> _tiles;
     
+    private GameObject _currentRoom;
+    
     // References ------------------------------------------------------------------------------------------------------
 
     #region Gameobjects
 
     [SerializeField] private Transform _camTrans;
     [SerializeField] private Tilemap _currentRoomTilemap;
-    [SerializeField] private GameObject _room;
     [SerializeField] private RuleTile _groundRuleTile, _wallRuleTile;
 
     #endregion
@@ -43,6 +44,16 @@ public class GridManager : MonoBehaviour
         {
             _instance = this;
         }
+
+        Room.OnRoomEnter += GetRoomTiles;
+    }
+
+    private void GetRoomTiles(Room room)
+    {
+        if (room.Type != RoomType.SHOP)
+        {
+            _currentRoom = room.gameObject;
+        }
     }
 
     private void Start()
@@ -54,7 +65,7 @@ public class GridManager : MonoBehaviour
     {
         _tiles = new Dictionary<Vector3, TileCell>();
         
-        TileCell[] roomTiles = _room.GetComponentsInChildren<TileCell>();
+        TileCell[] roomTiles = _currentRoom.GetComponentsInChildren<TileCell>();
 
         foreach (var tile in roomTiles)
         {

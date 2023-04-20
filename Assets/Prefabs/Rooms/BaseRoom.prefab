@@ -11,7 +11,8 @@ GameObject:
   - component: {fileID: 1864415425184045993}
   - component: {fileID: 1864415425184045991}
   - component: {fileID: 1864415425184045990}
-  m_Layer: 0
+  - component: {fileID: -7609705679939124429}
+  m_Layer: 2
   m_Name: BaseRoom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1364,3 +1365,16 @@ TilemapRenderer:
   m_Mode: 1
   m_DetectChunkCullingBounds: 0
   m_MaskInteraction: 0
+--- !u!114 &-7609705679939124429
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1864415425184045992}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dcb160ffd94bc4f44a0a2117edcd232d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _type: 1

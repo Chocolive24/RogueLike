@@ -61,6 +61,13 @@ public class GameManager : MonoBehaviour
         {
             _instance = this;
         }
+
+        Room.OnRoomEnter += SetBattleState;
+    }
+
+    private void SetBattleState(Room obj)
+    {
+        _isInBattleState = true;
     }
 
     // Start is called before the first frame update
@@ -85,7 +92,7 @@ public class GameManager : MonoBehaviour
 
         _stateMachine = new StateMachine();
 
-        _stateMachine.AddTransition(_exploringGameState, _battleGameState, () => _time > 0.1f);
+        _stateMachine.AddTransition(_exploringGameState, _battleGameState, () => _isInBattleState);
         _stateMachine.AddTransition(_battleGameState, _exploringGameState, () => !_isInBattleState);
 
         _stateMachine.SetState(_exploringGameState);
