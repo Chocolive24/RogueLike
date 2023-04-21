@@ -22,6 +22,7 @@ public class GridManager : MonoBehaviour
 
     #region Gameobjects
 
+    [SerializeField] private Tilemap _dungeonTilemap;
     [SerializeField] private Transform _camTrans;
     [SerializeField] private Tilemap _currentRoomTilemap;
     [SerializeField] private RuleTile _groundRuleTile, _wallRuleTile;
@@ -46,6 +47,8 @@ public class GridManager : MonoBehaviour
         }
 
         Room.OnRoomEnter += GetRoomTiles;
+        
+        GenerateGrid();
     }
 
     private void GetRoomTiles(Room room)
@@ -65,15 +68,16 @@ public class GridManager : MonoBehaviour
     {
         _tiles = new Dictionary<Vector3, TileCell>();
         
-        TileCell[] roomTiles = _currentRoom.GetComponentsInChildren<TileCell>();
+        TileCell[] dungeonTiles = _dungeonTilemap.GetComponentsInChildren<TileCell>();
+        //TileCell[] roomTiles = _currentRoom.GetComponentsInChildren<TileCell>();
 
-        foreach (var tile in roomTiles)
+        foreach (var tile in dungeonTiles)
         {
             _tiles[WorldToCellCenter(tile.transform.position)] = tile;
         }
 
-        _camTrans.transform.position = new Vector3((float)_width / 2f - 0.5f, 
-                     (float)_height / 2f - 0.5f -1f, -10);
+        //_camTrans.transform.position = new Vector3((float)_width / 2f - 0.5f, 
+                     //(float)_height / 2f - 0.5f -1f, -10);
     }
 
     public void DestroyGrid()

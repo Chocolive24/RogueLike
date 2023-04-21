@@ -77,7 +77,19 @@ public class UnitsManager : MonoBehaviour
         
         // Instantiate the hero.
         var randomPrefab = GetRandomUnit<BaseHero>(Faction.Hero);
-        var spawnedHero = Instantiate(randomPrefab, new Vector3(7.5f, -10, 0), Quaternion.identity);
+        var rndSpawnedTile = _gridManager.GetHeroSpawnTile();
+
+        var spawnedHero = Instantiate(randomPrefab, rndSpawnedTile.transform.position, Quaternion.identity);
+        
+        spawnedHero.OnDeath += HandleHeroDeath;
+        
+        spawnedHero.PreviousOccupiedTiles = spawnedHero.GetOccupiedTiles();
+        
+        foreach (var tile in spawnedHero.GetOccupiedTiles())
+        {
+            tile.SetUnit(spawnedHero);
+        }
+        
         _heroes.Add(spawnedHero);
         
         OnHeroSpawn?.Invoke(this);
@@ -99,8 +111,6 @@ public class UnitsManager : MonoBehaviour
 
             hero.PreviousOccupiedTiles = hero.GetOccupiedTiles();
 
-            hero.OnDeath += HandleHeroDeath;
-            
             foreach (var tile in hero.GetOccupiedTiles())
             {
                 tile.SetUnit(hero);

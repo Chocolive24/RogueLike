@@ -54,9 +54,9 @@ public class Tank : BaseEnemy
         
     }
 
-    protected override void FollowThePath()
+    protected override void FollowThePath(List<Vector3> pathToFollow)
     {
-        if (_currentTargetIndex < _avalaiblePath.Count - 1 && _nbrOfMovement < _movement.Value - 1) 
+        if (_currentTargetIndex < pathToFollow.Count - 1 && _nbrOfMovement < _movement.Value - 1) 
         {
             _currentTargetIndex++;
 
@@ -68,7 +68,7 @@ public class Tank : BaseEnemy
             }
             else
             {
-                _targetPos = _gridManager.WorldToCellCenter(_avalaiblePath[_currentTargetIndex]);
+                _targetPos = _gridManager.WorldToCellCenter(pathToFollow[_currentTargetIndex]);
                 _nbrOfMovement++;
             }
         }

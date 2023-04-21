@@ -63,7 +63,7 @@ public class UIBattleManager : MonoBehaviour
             _instance = this;
         }
         
-        _battlePanel.SetActive(false);
+        _battlePanel.SetActive(true);
         _VictoryPanel.SetActive(false);
         _notEnoughManaTxt.gameObject.SetActive(false);
     }

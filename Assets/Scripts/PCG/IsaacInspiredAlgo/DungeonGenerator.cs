@@ -19,8 +19,9 @@ public class DungeonGenerator : MonoBehaviour
 
     [SerializeField] private int _minNbrOfRooms = 7, _maxNbrOfRooms = 10;
 
-    private HashSet<BoundsInt> _roomsBounds;
-    private HashSet<BoundsInt> _endRooms;
+    private HashSet<RoomData> _rooms;
+    private HashSet<RoomData> _endRooms;
+    private HashSet<Vector3Int> _occupiedPositions;
     
     private HashSet<Vector2Int> _groundPositions;
     private HashSet<Vector2Int> _wallPositions;
@@ -30,101 +31,134 @@ public class DungeonGenerator : MonoBehaviour
     // References ------------------------------------------------------------------------------------------------------
     [SerializeField] private Tilemap _dungeonTilemap;
 
-    [SerializeField] private RuleTile _groundRuleTile;
-    [SerializeField] private RuleTile _wallRuleTile;
+    [SerializeField] private RuleTile _groundRuleTile, _wallRuleTile, _doorRuleTile;
     
     // Debug ---------------------
-    [SerializeField] private GameObject _endRoomDebug;
-    
+    //[SerializeField] private GameObject _endRoomDebug;
+
     // Methods ---------------------------------------------------------------------------------------------------------
     public void Generate()
-    {
-        DrunkardRoomAlgo();
-        
-        // Draw tiles
-        PaintDungeon(_dungeonTilemap, _groundPositions, _wallPositions);
-    }
-
-    private void DrunkardRoomAlgo()
     {
         _roomGridSize.x = _roomGridRatio.x * _roomSize.x;
         _roomGridSize.y = _roomGridRatio.y * _roomSize.y;
         
+        _rooms = new HashSet<RoomData>();
+        _endRooms = new HashSet<RoomData>();
+        _occupiedPositions = new HashSet<Vector3Int>();
+
+        int crashCounter = 0;
+        
+        do
+        {
+            if (crashCounter == 1)
+            {
+                Debug.Log("stop");
+            }
+
+            GenerateRooms();
+            crashCounter++;
+        } while (_rooms.Count != _minNbrOfRooms && crashCounter < 10000);
+       
+        Debug.Log("Distance CRASH " + crashCounter);
+        
+        // Draw tiles
+        PaintDungeon(_dungeonTilemap);
+    }
+
+    private void GenerateRooms()
+    {
         Vector3Int startGridPos = new Vector3Int(_roomGridSize.x / 2, _roomGridSize.y / 2, 0);
+
+        RoomData startRoom = new RoomData(new BoundsInt(startGridPos, _roomSize));
+
+        Queue<RoomData> roomQueue = new Queue<RoomData>();
+        roomQueue.Enqueue(startRoom);
+
+        if (_rooms.Count == 0)
+        {
+            _rooms.Add(startRoom);
+        }
         
-        BoundsInt startRoom = new BoundsInt(startGridPos, _roomSize);
-
-        Queue<Vector3Int> gridPosQueue = new Queue<Vector3Int>();
-        gridPosQueue.Enqueue(startGridPos);
-
-        _roomsBounds = new HashSet<BoundsInt>();
-        _roomsBounds.Add(startRoom);
-
-        _endRooms = new HashSet<BoundsInt>();
-        
-        List<Vector3Int> visitedPositions = new List<Vector3Int>();
+        _occupiedPositions.Add(startGridPos);
         
         int crashCounter = 0;
         
-        while (gridPosQueue.Count > 0 && crashCounter < 1000)
+        int nbrOfIteration = 0;
+        
+        while (roomQueue.Count > 0 && crashCounter < 1000)
         {
-            Vector3Int currentGridPos = gridPosQueue.Dequeue();
+            RoomData currentRoom = roomQueue.Dequeue();
             
             int neighbourAdded = 0;
-            
-            BoundsInt newRoom = new BoundsInt();
             
             foreach (var neighbour in Neighbourhood.CardinalNeighbours)
             {
                 Vector3Int gridNeighbour = new Vector3Int(
                     (int)neighbour.x * _roomSize.x, (int)neighbour.y * _roomSize.y, 0);
 
-                Vector3Int position = currentGridPos + gridNeighbour;
+                Vector3Int roomNeighbourPos = currentRoom.Bounds.position + gridNeighbour;
 
-                if (CheckForAbandon(position, visitedPositions))
+                if (CheckForAbandon(roomNeighbourPos, _occupiedPositions))
                 {
                     continue;
                 }
 
-                gridPosQueue.Enqueue(position);
+                RoomData newRoom = new RoomData(new BoundsInt(roomNeighbourPos, _roomSize));
+                newRoom.NbrOfIteration = nbrOfIteration;
                 
-                visitedPositions.Add(position);
+                roomQueue.Enqueue(newRoom);
+                _rooms.Add(newRoom);
+                _occupiedPositions.Add(roomNeighbourPos);
 
+                if (currentRoom.Bounds.position == startGridPos)
+                {
+                    var test = _rooms.First();
+                    test.AddRoomNeighbourPosition(roomNeighbourPos);
+                }
+                else
+                {
+                    currentRoom.AddRoomNeighbourPosition(roomNeighbourPos);
+                }
+                
+                newRoom.AddRoomNeighbourPosition(currentRoom.Bounds.position);
+                
                 neighbourAdded++;
-                
-                
-                // TODO CREER DES OBBJETS DE TYPE ROOM (avec attribut bounds dedans + ajouter les voisiins a l'attributs roomNeighbours)
-                newRoom = new BoundsInt(position, _roomSize);
-                _roomsBounds.Add(newRoom);
+                nbrOfIteration++;
             }
 
             if (neighbourAdded == 0)
             {
-                _endRooms.Add(newRoom);
+                _endRooms.Add(currentRoom);
             }
             
             crashCounter++;
         }
-
-        _endRoomDebug.transform.position = _endRooms.Last().center;
         
-        Debug.Log(_roomsBounds.Count);
-        Debug.Log(crashCounter);
+        //_endRoomDebug.transform.position = _endRooms.OrderBy(x => x.NbrOfIteration).Last().Bounds.center;
     }
 
-    private bool CheckForAbandon(Vector3Int position, List<Vector3Int> visitedPositions)
+    private bool CheckForAbandon(Vector3Int position, HashSet<Vector3Int> occupiedPositions)
     {
+        // Out of grid limit.
         if (!IsPositionInGrid(position))
         {
             return true;
         }
 
-        if (visitedPositions.Contains(position))
+        // The position has already been visited so there is a room.
+        if (occupiedPositions.Contains(position))
         {
             return true;
         }
 
-        if (_roomsBounds.Count >= _minNbrOfRooms)
+        // There is more than 1 Room neighbour at this position.
+        if (CountNeighbours(position) > 1)
+        {
+            return true;
+        }
+        
+        // There is already enough Rooms.
+        if (_rooms.Count >= _minNbrOfRooms)
         {
             return true;
         }
@@ -138,6 +172,7 @@ public class DungeonGenerator : MonoBehaviour
         return false;
     }
 
+    
     private bool IsPositionInGrid(Vector3Int position)
     {
         int rightPos = position.x + _roomSize.x;
@@ -146,25 +181,51 @@ public class DungeonGenerator : MonoBehaviour
         return position.x >= 0 && position.y >= 0 && rightPos <= _roomGridSize.x && upPos <= _roomGridSize.y;
     }
 
-    private void PaintDungeon(Tilemap tilemap, HashSet<Vector2Int> groundPositions, HashSet<Vector2Int> wallPositions)
+    private int CountNeighbours(Vector3Int position)
+    {
+        int nbrNeighbour = 0;
+
+        foreach (var neighbour in Neighbourhood.CardinalNeighbours)
+        {
+            Vector3Int gridNeighbour = new Vector3Int(
+                (int)neighbour.x * _roomSize.x, (int)neighbour.y * _roomSize.y, 0);
+
+            Vector3Int positionToAnalyse = position + gridNeighbour;
+
+            if (_occupiedPositions.Contains(positionToAnalyse))
+            {
+                nbrNeighbour++;
+            }
+        }
+
+        return nbrNeighbour;
+    }
+    
+    private void PaintDungeon(Tilemap tilemap)
     {
         _dungeonTilemap.ClearAllTiles();
         
-        foreach (var room in _roomsBounds)
+        foreach (var room in _rooms)
         {
-            groundPositions = GetGroundPosition(room);
+            _groundPositions = GetGroundPositions(room);
 
-            wallPositions = GetWallsPositions(room);
+            _wallPositions = GetWallsPositions(room);
             
-            PaintRoom(tilemap, groundPositions, wallPositions);
+            PaintRoom(tilemap, _groundPositions, _wallPositions, room.GetDoorPositions());
         }
     }
 
-    private void PaintRoom(Tilemap tilemap, HashSet<Vector2Int> groundPositions, HashSet<Vector2Int> wallPositions)
+    private void PaintRoom(Tilemap tilemap, HashSet<Vector2Int> groundPositions, HashSet<Vector2Int> wallPositions,
+                            List<Vector3Int> roomNeighbourPos)
     {
         PaintTilesFromAListOfPositions(tilemap, _groundRuleTile, groundPositions);
         
         PaintTilesFromAListOfPositions(tilemap, _wallRuleTile, wallPositions);
+
+        foreach (var doorPos in roomNeighbourPos)
+        {
+            tilemap.SetTile(doorPos, _doorRuleTile);
+        }
     }
 
     private void PaintTilesFromAListOfPositions(Tilemap tilemap, RuleTile ruleTile, HashSet<Vector2Int> positions)
@@ -176,13 +237,13 @@ public class DungeonGenerator : MonoBehaviour
         }
     }
     
-    private HashSet<Vector2Int> GetGroundPosition(BoundsInt room)
+    private HashSet<Vector2Int> GetGroundPositions(RoomData room)
     {
         HashSet<Vector2Int> floor = new HashSet<Vector2Int>();
 
-        for (int x = room.xMin + 1; x < room.xMax - 1; x++)
+        for (int x = room.Bounds.xMin + 1; x < room.Bounds.xMax - 1; x++)
         {
-            for (int y = room.yMin + 1; y < room.yMax - 1; y++)
+            for (int y = room.Bounds.yMin + 1; y < room.Bounds.yMax - 1; y++)
             {
                 floor.Add(new Vector2Int(x, y));
             }
@@ -191,20 +252,20 @@ public class DungeonGenerator : MonoBehaviour
         return floor;
     }
     
-    private HashSet<Vector2Int> GetWallsPositions(BoundsInt bigRoom)
+    private HashSet<Vector2Int> GetWallsPositions(RoomData room)
     {
         HashSet<Vector2Int> walls = new HashSet<Vector2Int>();
 
-        for (int x = bigRoom.xMin; x < bigRoom.xMax; x++)
+        for (int x = room.Bounds.xMin; x < room.Bounds.xMax; x++)
         {
-            walls.Add(new Vector2Int(x, bigRoom.yMin));
-            walls.Add(new Vector2Int(x, bigRoom.yMax - 1));
+            walls.Add(new Vector2Int(x, room.Bounds.yMin));
+            walls.Add(new Vector2Int(x, room.Bounds.yMax - 1));
         }
 
-        for (int y = bigRoom.yMin; y < bigRoom.yMax; y++)
+        for (int y = room.Bounds.yMin; y < room.Bounds.yMax; y++)
         {
-            walls.Add(new Vector2Int(bigRoom.xMin, y));
-            walls.Add(new Vector2Int(bigRoom.xMax - 1, y));
+            walls.Add(new Vector2Int(room.Bounds.xMin, y));
+            walls.Add(new Vector2Int(room.Bounds.xMax - 1, y));
         }
 
         return walls;

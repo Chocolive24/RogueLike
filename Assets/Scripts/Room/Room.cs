@@ -20,25 +20,18 @@ public class Room : MonoBehaviour
     
     private List<BaseEnemy> _enemies;
 
-    private List<Room> _roomNeighbours;
+    private RoomData _roomData;
     
     // Events ----------------------------------------------------------------------------------------------------------
     public static event Action<Room> OnRoomEnter;
     
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public RoomType Type => _type;
+
     
+
     // Methods ---------------------------------------------------------------------------------------------------------
-    public void AddRoomNeighbour(Room roomNeighbour)
-    {
-        if (_roomNeighbours == null)
-        {
-            _roomNeighbours = new List<Room>();
-        }
-        
-        _roomNeighbours.Add(roomNeighbour);
-    }
-    
+
     private void OnTriggerEnter2D(Collider2D col)
     {
         if (col.GetComponent<BaseHero>())

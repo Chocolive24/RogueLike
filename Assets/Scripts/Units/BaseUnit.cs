@@ -34,6 +34,8 @@ public class BaseUnit : MonoBehaviour
     protected bool _stopFollowingPath = false;
 
     protected List<Vector3> _avalaiblePath;
+
+    protected List<Vector3> _exploringPath;
     
     // References ------------------------------------------------------------------------------------------------------
     protected GameManager _gameManager;
@@ -169,21 +171,23 @@ public class BaseUnit : MonoBehaviour
                 transform.position = _targetPos.Value;
                 _targetPos = null;
 
-                if (_gameManager.IsInBattleState)
-                {
-                    FollowThePath();
-                }
+                // if (_gameManager.IsInBattleState)
+                // {
+
+                List<Vector3> pathToFollow = _gameManager.IsInBattleState ? _avalaiblePath : _exploringPath;
+                FollowThePath(pathToFollow);
+                //}
             }
         }
     }
 
-    protected virtual void FollowThePath()
+    protected virtual void FollowThePath(List<Vector3> path)
     {
-        if (_currentTargetIndex < _avalaiblePath.Count - 1) 
+        if (_currentTargetIndex < path.Count - 1) 
         {
             _currentTargetIndex++;
 
-            var nextTile = _gridManager.GetTileAtPosition(_avalaiblePath[_currentTargetIndex]);
+            var nextTile = _gridManager.GetTileAtPosition(path[_currentTargetIndex]);
             
             if (nextTile.OccupiedUnit || GetOccupiedTiles().Contains(nextTile))
             {
@@ -191,7 +195,7 @@ public class BaseUnit : MonoBehaviour
             }
             else
             {
-                _targetPos = _gridManager.WorldToCellCenter(_avalaiblePath[_currentTargetIndex]);
+                _targetPos = _gridManager.WorldToCellCenter(path[_currentTargetIndex]);
             }
         }
         
@@ -220,6 +224,7 @@ public class BaseUnit : MonoBehaviour
         _currentTargetIndex = 0;
         _path.Clear();
         _avalaiblePath.Clear();
+        _exploringPath.Clear();
     }
 
     public virtual void DisplayStats()

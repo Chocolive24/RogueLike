@@ -114,7 +114,7 @@ public class TileCell : MonoBehaviour
         
     }
 
-    public void SetUnit(BaseUnit unit)
+    public virtual void SetUnit(BaseUnit unit)
     {
         // if (unit.OccupiedTile)
         // {
@@ -208,10 +208,10 @@ public class TileCell : MonoBehaviour
     
     protected virtual void OnMouseDown()
     {
-        if (!_gameManager.IsInBattleState)
-        {
-            return;
-        }
+        // if (!_gameManager.IsInBattleState)
+        // {
+        //     return;
+        // }
         
         OnTileSelected?.Invoke(this);
     }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Tilemaps;
 using Object = UnityEngine.Object;
 
 public enum HeroClass
@@ -90,8 +91,26 @@ public class BaseHero : BaseUnit
         BattleManager.OnPlayerTurnStart += StartTurn;
         BattleManager.OnPlayerTurnEnd += EndTurn;
         BattleManager.OnBattleEnd += PutAllCardsInDecks;
+        TileCell.OnTileSelected += FindExploringPath;
 
         _cardHand = new List<BaseCard>();
+    }
+
+    private void FindExploringPath(TileCell tile)
+    {
+        Vector3 tileTargetPos = tile.transform.position;
+
+        _exploringPath = FindPath(_gridManager.WorldToCellCenter(transform.position), tileTargetPos, 
+            false, false, false);
+        
+        if (_exploringPath.Count > 0)
+        {
+            _targetPos = _exploringPath.First();
+        }
+        else
+        {
+            _targetPos = null;
+        }
     }
 
     private void GameManagerOnOnGameStateChange()
@@ -213,12 +232,12 @@ public class BaseHero : BaseUnit
     {
         if (ctx.started)
         {
-            if (!_gameManager.IsInBattleState)
-            {
-                Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
-                _targetPos = new Vector3(mousePos.x, mousePos.y, 0);
-            }
+            // if (!_gameManager.IsInBattleState)
+            // {
+            //     Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            //
+            //     _targetPos = new Vector3(mousePos.x, mousePos.y, 0);
+            // }
         }
     }
     

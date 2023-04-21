@@ -17,13 +17,14 @@ public class PlayerCamera : MonoBehaviour
 
     private void SetFollowPlayer(UnitsManager unitsManager)
     {
+        _vCam = GetComponent<CinemachineVirtualCamera>();
         _vCam.Follow = unitsManager.HeroPlayer.transform;
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        _vCam = GetComponent<CinemachineVirtualCamera>();
+        
     }
 
     // Update is called once per frame
