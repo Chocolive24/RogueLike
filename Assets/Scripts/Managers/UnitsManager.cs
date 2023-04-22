@@ -59,9 +59,52 @@ public class UnitsManager : MonoBehaviour
         _heroes = new List<BaseHero>();
         _enemies = new List<BaseEnemy>();
 
+        DoorTileCell.OnDoorTileEnter += SpawnRoomEnemies;
+
         //Room.OnRoomEnter += SpawnEntities;
     }
 
+    private void SpawnRoomEnemies(DoorTileCell doorTile)
+    {
+        RoomData roomToSpawnEnemy = doorTile.GetRoomNeighbour();
+
+        if (roomToSpawnEnemy != null)
+        {
+            int remainginWeight = roomToSpawnEnemy.EnemySpawnWeight;
+            
+            while (remainginWeight > 0)
+            {
+                BaseEnemy enemy = GetRandomEnemyUnderWeight(remainginWeight);
+            
+                var spawnedEnemy = Instantiate(enemy);
+            
+                var randomSpawnPos = roomToSpawnEnemy.GetARandomTilePosition();
+                spawnedEnemy.transform.position = _gridManager.WorldToCellCenter(randomSpawnPos);
+            
+                spawnedEnemy.PreviousOccupiedTiles = spawnedEnemy.GetOccupiedTiles();
+            
+                foreach (var tile in spawnedEnemy.GetOccupiedTiles())
+                {
+                    tile.SetUnit(spawnedEnemy);
+                }
+            
+                _enemies.Add(spawnedEnemy);
+            
+                spawnedEnemy.OnTurnFinished += SetNextEnemyTurn;
+                spawnedEnemy.OnDeath += HandleEnemyDeath;
+            
+                remainginWeight -= spawnedEnemy.Weight;
+            }
+        }
+    }
+
+    private BaseEnemy GetRandomEnemyUnderWeight(int weight)
+    {
+        return (BaseEnemy)(_enemiesData.Where(enemyUnit => (
+            (BaseEnemy)enemyUnit.BaseUnitPrefab).Weight <= weight).OrderBy(
+            o => Random.value).First()).BaseUnitPrefab;
+    }
+    
     // private void SpawnEntities(Room room)
     // {
     //     SpawnHeroes();
@@ -101,38 +144,24 @@ public class UnitsManager : MonoBehaviour
         
     }
 
-    public void SpawnHeroes()
+    public void SpawnHeroes(Vector3 spawnPos)
     {
         foreach (var hero in _heroes)
         {
-            var spawnedTile = _gridManager.GetHeroSpawnTile();
-            hero.transform.position = spawnedTile.transform.position;
-            //hero.transform.position = _gridManager.WorldToCellCenter(new Vector3(0, 7,0));
+            hero.transform.position = spawnPos;
 
+            foreach (var tile in hero.PreviousOccupiedTiles)
+            {
+                tile.OccupiedUnit = null;
+            }
+            
             hero.PreviousOccupiedTiles = hero.GetOccupiedTiles();
 
             foreach (var tile in hero.GetOccupiedTiles())
             {
                 tile.SetUnit(hero);
             }
-            
-            //rndSpawnedTile.SetUnit(hero);
         }
-        
-        //_heroes = new List<BaseHero>();
-        
-        // var heroCount = 1;
-        //
-        // for (int i = 0; i < heroCount; i++)
-        // {
-        //     var randomPrefab = GetRandomUnit<BaseHero>(Faction.Hero);
-        //     var spawnedHero = Instantiate(randomPrefab);
-        //     var randomSpawnTile = GridManager.Instance.GetHeroSpawnTile();
-        //     
-        //     randomSpawnTile.SetUnit(spawnedHero);
-        //     
-        //     _heroes.Add(spawnedHero);
-        // }
     }
 
     private void HandleHeroDeath(BaseUnit obj)
@@ -289,7 +318,6 @@ public class UnitsManager : MonoBehaviour
     private void HandleEnemyDeath(BaseUnit obj)
     {
         _enemies.Remove((BaseEnemy)obj);
-        Debug.Log(_enemies.Count);
     }
     
     private T GetRandomUnit<T>(Faction faction) where T : BaseUnit

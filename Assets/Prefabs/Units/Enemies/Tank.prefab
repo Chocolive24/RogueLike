@@ -505,8 +505,8 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 8
     Variable: {fileID: 0}
-  _tileSize: 0
   _type: 2
+  _weight: 4
   _attackRange: 1
   _maxNbrOfAttackPerTurn: 1
   _maxNbrOfMovementPerTurn: 1

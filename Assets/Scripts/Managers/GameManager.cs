@@ -61,12 +61,20 @@ public class GameManager : MonoBehaviour
         {
             _instance = this;
         }
-
-        Room.OnRoomEnter += SetBattleState;
+        
+        DoorTileCell.OnDoorTileEnter += SetBattleState;
     }
 
-    private void SetBattleState(Room obj)
+    private void SetBattleState(DoorTileCell doorTile)
     {
+        RoomData roomToSetFight = doorTile.GetRoomNeighbour();
+
+        if (roomToSetFight != null)
+        {
+            // TODO Check le hasAFightInIt et set le battle state a true si y'a un fight.
+        }
+        
+        
         _isInBattleState = true;
     }
 

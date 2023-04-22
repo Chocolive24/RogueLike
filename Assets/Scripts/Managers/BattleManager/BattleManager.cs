@@ -17,6 +17,8 @@ public class BattleManager : MonoBehaviour
     private bool _isPlayerTurn;
 
     private List<BaseCard> _cardRewards = new List<BaseCard>();
+    
+    private Vector3 _heroSpawnPos;
 
     // References ------------------------------------------------------------------------------------------------------
 
@@ -77,7 +79,10 @@ public class BattleManager : MonoBehaviour
         }
         
         UnitsManager.OnEnemiesTurnEnd += SetTurnToPlayerTurn;
+        DoorTileCell.OnDoorTileEnter += GetSpawnTile;
     }
+
+    
 
     private void SetTurnToPlayerTurn()
     {
@@ -85,6 +90,11 @@ public class BattleManager : MonoBehaviour
         _isPlayerTurn = true;
     }
 
+    private void GetSpawnTile(DoorTileCell doorTile)
+    {
+        _heroSpawnPos = doorTile.GetNextRoomSpawnPos();
+    }
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -126,9 +136,9 @@ public class BattleManager : MonoBehaviour
     
     public void StartBattle()
     {
-        _gridManager.GenerateGrid();
-        _unitsManager.SpawnHeroes();
-        _unitsManager.HandleSpawnEnemies();
+        //_gridManager.GenerateGrid();
+        _unitsManager.SpawnHeroes(_heroSpawnPos);
+        //_unitsManager.HandleSpawnEnemies();
 
         _isPlayerTurn = true;
         
@@ -139,7 +149,7 @@ public class BattleManager : MonoBehaviour
 
     public void EndBattle()
     {
-        _gridManager.DestroyGrid();
+        //_gridManager.DestroyGrid();
         
         _uiBattleManager.BattlePanel.SetActive(false);
         

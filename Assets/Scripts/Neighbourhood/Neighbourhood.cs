@@ -4,8 +4,20 @@ using UnityEngine;
 
 public class Neighbourhood
 {
-    public static List<Vector2> CardinalNeighbours => new List<Vector2>
+    public enum Direction
+    {
+        UP,
+        RIGHT,
+        LEFT,
+        DOWN,
+        NULL
+    }
+    
+    public static Dictionary<Direction, Vector2> CardinalNeighbours => new Dictionary<Direction, Vector2>()
     { 
-        Vector2.up, Vector2.right, Vector2.left, Vector2.down
+        {Direction.UP, Vector2.up},
+        {Direction.RIGHT, Vector2.right},
+        {Direction.LEFT, Vector2.left},
+        {Direction.DOWN, Vector2.down},
     };
 }

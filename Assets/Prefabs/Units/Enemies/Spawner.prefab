@@ -117,13 +117,14 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 8
     Variable: {fileID: 0}
-  _tileSize: 0
   _type: 3
+  _weight: 5
   _attackRange: 1
   _maxNbrOfAttackPerTurn: 1
   _maxNbrOfMovementPerTurn: 1
   _minimumPathCount: 1
   _minionScriptableUnit: {fileID: 11400000, guid: 61ea4ab1de10b35459e423d5c85eb6bf, type: 2}
+  _maxNbrOfMinion: 3
 --- !u!114 &-774162370051924527
 MonoBehaviour:
   m_ObjectHideFlags: 0

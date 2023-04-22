@@ -33,6 +33,7 @@ public class UIBattleManager : MonoBehaviour
     private BattleManager _battleManager;
     private CardPlayedManager _cardPlayedManager;
     private UnitsManager _unitsManager;
+    private GameManager _gameManager;
 
     #endregion
     
@@ -63,7 +64,7 @@ public class UIBattleManager : MonoBehaviour
             _instance = this;
         }
         
-        _battlePanel.SetActive(true);
+        _battlePanel.SetActive(false);
         _VictoryPanel.SetActive(false);
         _notEnoughManaTxt.gameObject.SetActive(false);
     }
@@ -80,22 +81,26 @@ public class UIBattleManager : MonoBehaviour
         _battleManager = BattleManager.Instance;
         _cardPlayedManager = CardPlayedManager.Instance;
         _unitsManager = UnitsManager.Instance;
+        _gameManager = GameManager.Instance;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (_unitsManager.HeroPlayer)
+        if (_gameManager.IsInBattleState)
         {
-            if (!_cardPlayedManager.HasACardOnIt)
+            if (_unitsManager.HeroPlayer)
             {
-                _manaNbrTxt.text = _unitsManager.HeroPlayer.CurrentMana.ToString() + " / " +
-                                   _unitsManager.HeroPlayer.MaxMana.ToString();
-            }
-            else
-            {
-                _manaNbrTxt.text = _unitsManager.HeroPlayer.CurrentMana.ToString() + " / " +
-                                   _unitsManager.HeroPlayer.MaxMana.ToString();
+                if (!_cardPlayedManager.HasACardOnIt)
+                {
+                    _manaNbrTxt.text = _unitsManager.HeroPlayer.CurrentMana.ToString() + " / " +
+                                       _unitsManager.HeroPlayer.MaxMana.ToString();
+                }
+                else
+                {
+                    _manaNbrTxt.text = _unitsManager.HeroPlayer.CurrentMana.ToString() + " / " +
+                                       _unitsManager.HeroPlayer.MaxMana.ToString();
+                }
             }
         }
     }

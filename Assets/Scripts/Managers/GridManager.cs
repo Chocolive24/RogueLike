@@ -28,7 +28,9 @@ public class GridManager : MonoBehaviour
     [SerializeField] private RuleTile _groundRuleTile, _wallRuleTile;
 
     #endregion
-    
+
+    [SerializeField] private DungeonGenerator _dungeonGenerator;
+
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public Vector2 Size => new Vector2(_width, _height);
     public Tilemap CurrentRoomTilemap => _currentRoomTilemap;
@@ -66,6 +68,8 @@ public class GridManager : MonoBehaviour
     
     public void GenerateGrid()
     {
+        _dungeonGenerator.Generate();
+        
         _tiles = new Dictionary<Vector3, TileCell>();
         
         TileCell[] dungeonTiles = _dungeonTilemap.GetComponentsInChildren<TileCell>();
@@ -80,23 +84,25 @@ public class GridManager : MonoBehaviour
                      //(float)_height / 2f - 0.5f -1f, -10);
     }
 
-    public void DestroyGrid()
-    {
-        foreach (var item in _tiles)
-        {
-            TileCell tile = GetTileAtPosition(item.Key);
-
-            if (tile)
-            {
-                tile.OccupiedUnit = null;
-            }
-        }
-        
-        _tiles.Clear();
-    }
+    // public void DestroyGrid()
+    // {
+    //     foreach (var item in _tiles)
+    //     {
+    //         TileCell tile = GetTileAtPosition(item.Key);
+    //
+    //         if (tile)
+    //         {
+    //             tile.OccupiedUnit = null;
+    //         }
+    //     }
+    //     
+    //     _tiles.Clear();
+    // }
     
     public TileCell GetHeroSpawnTile()
     {
+        return GetTileAtPosition(WorldToCellCenter(_dungeonGenerator.Rooms.First().Value.Bounds.center));
+        
         return _tiles.Where(t => t.Value.Walkable).OrderBy
             (t => Random.value).First().Value;
     }

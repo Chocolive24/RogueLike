@@ -12,23 +12,27 @@ public class DungeonGenerator : MonoBehaviour
     // Attributes ------------------------------------------------------------------------------------------------------
     
     // The size of the grid where we generate our rooms.
-    [SerializeField] private Vector2Int _roomGridRatio;
+    [SerializeField] private Vector2Int _gridSize;
     
+    [Header("Room Attributes")]
     // The size of a simple room.
     [SerializeField] private Vector3Int _roomSize;
 
     [SerializeField] private int _minNbrOfRooms = 7, _maxNbrOfRooms = 10;
+    
+    [SerializeField] private int _minEnemyWeight = 5, _maxEnemyWeight = 7;
 
-    private HashSet<RoomData> _rooms;
+    private Dictionary<Vector3Int, RoomData> _rooms;
     private HashSet<RoomData> _endRooms;
     private HashSet<Vector3Int> _occupiedPositions;
     
     private HashSet<Vector2Int> _groundPositions;
     private HashSet<Vector2Int> _wallPositions;
 
-    private Vector2Int _roomGridSize;
-    
+    private Vector2Int _gridSizeMultipliedByRoomSize;
+
     // References ------------------------------------------------------------------------------------------------------
+    [Header("Tiles References")]
     [SerializeField] private Tilemap _dungeonTilemap;
 
     [SerializeField] private RuleTile _groundRuleTile, _wallRuleTile, _doorRuleTile;
@@ -36,13 +40,16 @@ public class DungeonGenerator : MonoBehaviour
     // Debug ---------------------
     //[SerializeField] private GameObject _endRoomDebug;
 
+    // Getters and Setters ---------------------------------------------------------------------------------------------
+    public Dictionary<Vector3Int, RoomData> Rooms => _rooms;
+
     // Methods ---------------------------------------------------------------------------------------------------------
     public void Generate()
     {
-        _roomGridSize.x = _roomGridRatio.x * _roomSize.x;
-        _roomGridSize.y = _roomGridRatio.y * _roomSize.y;
+        _gridSizeMultipliedByRoomSize.x = _gridSize.x * _roomSize.x;
+        _gridSizeMultipliedByRoomSize.y = _gridSize.y * _roomSize.y;
         
-        _rooms = new HashSet<RoomData>();
+        _rooms = new Dictionary<Vector3Int, RoomData>();
         _endRooms = new HashSet<RoomData>();
         _occupiedPositions = new HashSet<Vector3Int>();
 
@@ -50,16 +57,9 @@ public class DungeonGenerator : MonoBehaviour
         
         do
         {
-            if (crashCounter == 1)
-            {
-                Debug.Log("stop");
-            }
-
             GenerateRooms();
             crashCounter++;
         } while (_rooms.Count != _minNbrOfRooms && crashCounter < 10000);
-       
-        Debug.Log("Distance CRASH " + crashCounter);
         
         // Draw tiles
         PaintDungeon(_dungeonTilemap);
@@ -67,16 +67,17 @@ public class DungeonGenerator : MonoBehaviour
 
     private void GenerateRooms()
     {
-        Vector3Int startGridPos = new Vector3Int(_roomGridSize.x / 2, _roomGridSize.y / 2, 0);
+        Vector3Int startGridPos = new Vector3Int(_gridSizeMultipliedByRoomSize.x / 2, 
+            _gridSizeMultipliedByRoomSize.y / 2, 0);
 
-        RoomData startRoom = new RoomData(new BoundsInt(startGridPos, _roomSize));
+        RoomData startRoom = CreateRoom(startGridPos, 0, false);
 
         Queue<RoomData> roomQueue = new Queue<RoomData>();
         roomQueue.Enqueue(startRoom);
 
         if (_rooms.Count == 0)
         {
-            _rooms.Add(startRoom);
+            _rooms[startGridPos] = startRoom;
         }
         
         _occupiedPositions.Add(startGridPos);
@@ -94,7 +95,7 @@ public class DungeonGenerator : MonoBehaviour
             foreach (var neighbour in Neighbourhood.CardinalNeighbours)
             {
                 Vector3Int gridNeighbour = new Vector3Int(
-                    (int)neighbour.x * _roomSize.x, (int)neighbour.y * _roomSize.y, 0);
+                    (int)neighbour.Value.x * _roomSize.x, (int)neighbour.Value.y * _roomSize.y, 0);
 
                 Vector3Int roomNeighbourPos = currentRoom.Bounds.position + gridNeighbour;
 
@@ -102,25 +103,27 @@ public class DungeonGenerator : MonoBehaviour
                 {
                     continue;
                 }
-
-                RoomData newRoom = new RoomData(new BoundsInt(roomNeighbourPos, _roomSize));
+                
+                int enemySpawnWeight = Random.Range(_minEnemyWeight, _maxEnemyWeight);
+                RoomData newRoom = CreateRoom(roomNeighbourPos, enemySpawnWeight, true);
                 newRoom.NbrOfIteration = nbrOfIteration;
                 
                 roomQueue.Enqueue(newRoom);
-                _rooms.Add(newRoom);
+                _rooms[roomNeighbourPos] = newRoom;
                 _occupiedPositions.Add(roomNeighbourPos);
 
+                // Add neighbours to the current Room.
                 if (currentRoom.Bounds.position == startGridPos)
                 {
-                    var test = _rooms.First();
-                    test.AddRoomNeighbourPosition(roomNeighbourPos);
+                    _rooms.First().Value.AddRoomNeighbour(roomNeighbourPos, newRoom);
                 }
                 else
                 {
-                    currentRoom.AddRoomNeighbourPosition(roomNeighbourPos);
+                    currentRoom.AddRoomNeighbour(roomNeighbourPos, newRoom);
                 }
                 
-                newRoom.AddRoomNeighbourPosition(currentRoom.Bounds.position);
+                // Add neighbour to the new Room.
+                newRoom.AddRoomNeighbour(currentRoom.Bounds.position, currentRoom);
                 
                 neighbourAdded++;
                 nbrOfIteration++;
@@ -135,6 +138,11 @@ public class DungeonGenerator : MonoBehaviour
         }
         
         //_endRoomDebug.transform.position = _endRooms.OrderBy(x => x.NbrOfIteration).Last().Bounds.center;
+    }
+
+    private RoomData CreateRoom(Vector3Int roomNeighbourPos, int enemySpawnWeight, bool hasEnemiesToFight)
+    {
+        return new RoomData(new BoundsInt(roomNeighbourPos, _roomSize), enemySpawnWeight, hasEnemiesToFight);
     }
 
     private bool CheckForAbandon(Vector3Int position, HashSet<Vector3Int> occupiedPositions)
@@ -171,14 +179,13 @@ public class DungeonGenerator : MonoBehaviour
 
         return false;
     }
-
     
     private bool IsPositionInGrid(Vector3Int position)
     {
         int rightPos = position.x + _roomSize.x;
         int upPos = position.y + _roomSize.y;
 
-        return position.x >= 0 && position.y >= 0 && rightPos <= _roomGridSize.x && upPos <= _roomGridSize.y;
+        return position.x >= 0 && position.y >= 0 && rightPos <= _gridSizeMultipliedByRoomSize.x && upPos <= _gridSizeMultipliedByRoomSize.y;
     }
 
     private int CountNeighbours(Vector3Int position)
@@ -188,7 +195,7 @@ public class DungeonGenerator : MonoBehaviour
         foreach (var neighbour in Neighbourhood.CardinalNeighbours)
         {
             Vector3Int gridNeighbour = new Vector3Int(
-                (int)neighbour.x * _roomSize.x, (int)neighbour.y * _roomSize.y, 0);
+                (int)neighbour.Value.x * _roomSize.x, (int)neighbour.Value.y * _roomSize.y, 0);
 
             Vector3Int positionToAnalyse = position + gridNeighbour;
 
@@ -207,24 +214,40 @@ public class DungeonGenerator : MonoBehaviour
         
         foreach (var room in _rooms)
         {
-            _groundPositions = GetGroundPositions(room);
+            _groundPositions = GetGroundPositions(room.Value);
 
-            _wallPositions = GetWallsPositions(room);
+            _wallPositions = GetWallsPositions(room.Value);
             
-            PaintRoom(tilemap, _groundPositions, _wallPositions, room.GetDoorPositions());
+            PaintRoom(tilemap, room.Value, _groundPositions, _wallPositions, 
+                room.Value.GetDoorPositions());
         }
     }
 
-    private void PaintRoom(Tilemap tilemap, HashSet<Vector2Int> groundPositions, HashSet<Vector2Int> wallPositions,
-                            List<Vector3Int> roomNeighbourPos)
+    private void PaintRoom(Tilemap tilemap, RoomData room, HashSet<Vector2Int> groundPositions, 
+                            HashSet<Vector2Int> wallPositions, List<Vector3Int> roomDoorsPosition)
     {
         PaintTilesFromAListOfPositions(tilemap, _groundRuleTile, groundPositions);
         
         PaintTilesFromAListOfPositions(tilemap, _wallRuleTile, wallPositions);
 
-        foreach (var doorPos in roomNeighbourPos)
+        PaintDoors(tilemap, room, roomDoorsPosition);
+    }
+
+    private void PaintDoors(Tilemap tilemap, RoomData room, List<Vector3Int> roomDoorsPosition)
+    {
+        foreach (var doorPos in roomDoorsPosition)
         {
             tilemap.SetTile(doorPos, _doorRuleTile);
+
+            var doorGameObject = tilemap.GetInstantiatedObject(doorPos);
+
+            DoorTileCell door = doorGameObject.GetComponent<DoorTileCell>();
+
+            door.Room = room;
+
+            room.Doors.TryGetValue(doorPos, out Neighbourhood.Direction direction);
+
+            door.Direction = direction;
         }
     }
 

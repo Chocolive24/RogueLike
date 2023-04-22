@@ -224,7 +224,10 @@ public class BaseUnit : MonoBehaviour
         _currentTargetIndex = 0;
         _path.Clear();
         _avalaiblePath.Clear();
-        _exploringPath.Clear();
+        if (_exploringPath != null)
+        {
+            _exploringPath.Clear();
+        }
     }
 
     public virtual void DisplayStats()

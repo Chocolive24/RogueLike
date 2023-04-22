@@ -12,6 +12,10 @@ PrefabInstance:
       value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 1691780254251407065, guid: 96564f87f22cc59478c479e065f325a8, type: 3}
+      propertyPath: _weight
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1691780254251407065, guid: 96564f87f22cc59478c479e065f325a8, type: 3}
       propertyPath: _unitName
       value: Minion
       objectReference: {fileID: 0}

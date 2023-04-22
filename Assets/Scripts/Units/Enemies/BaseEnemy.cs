@@ -24,6 +24,7 @@ public class BaseEnemy : BaseUnit
     private bool _isSelected = false;
 
     [SerializeField] protected EnemyType _type;
+    [SerializeField] protected int _weight;
     [SerializeField] protected int _attackRange;
     [SerializeField] protected int _maxNbrOfAttackPerTurn = 1;
     [SerializeField] protected int _maxNbrOfMovementPerTurn = 1;
@@ -52,6 +53,8 @@ public class BaseEnemy : BaseUnit
     #region Getters and Setters
 
     public EnemyType Type => _type;
+
+    public int Weight => _weight;
     public int AttackRange => _attackRange;
 
     public int MaxNbrOfMovementPerTurn => _maxNbrOfMovementPerTurn;

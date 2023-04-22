@@ -98,18 +98,21 @@ public class BaseHero : BaseUnit
 
     private void FindExploringPath(TileCell tile)
     {
-        Vector3 tileTargetPos = tile.transform.position;
+        if (!_gameManager.IsInBattleState)
+        {
+            Vector3 tileTargetPos = tile.transform.position;
 
-        _exploringPath = FindPath(_gridManager.WorldToCellCenter(transform.position), tileTargetPos, 
-            false, false, false);
+            _exploringPath = FindPath(_gridManager.WorldToCellCenter(transform.position), tileTargetPos, 
+                false, false, false);
         
-        if (_exploringPath.Count > 0)
-        {
-            _targetPos = _exploringPath.First();
-        }
-        else
-        {
-            _targetPos = null;
+            if (_exploringPath.Count > 0)
+            {
+                _targetPos = _exploringPath.First();
+            }
+            else
+            {
+                _targetPos = null;
+            }
         }
     }
 
