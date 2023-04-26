@@ -225,7 +225,7 @@ public class TileCell : MonoBehaviour
                 int x = (int)_occupiedUnit.transform.position.x;
                 int y = (int)_occupiedUnit.transform.position.y;
 
-                var pos = _gridManager.CurrentRoomTilemap.WorldToCell(new Vector3(x, y, 0));
+                var pos = _gridManager.WorldToCellCenter(new Vector3(x, y, 0));
                 
                 TileCell startingTile = _gridManager.GetTileAtPosition(
                     _gridManager.WorldToCellCenter(pos));

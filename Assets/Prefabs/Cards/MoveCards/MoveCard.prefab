@@ -89,11 +89,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1101165897834925641, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
       propertyPath: m_SortingLayer
-      value: -2
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 3177005910575897701, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
       propertyPath: m_SortingLayer
-      value: -2
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f7b6b0cf27b613a4093e0b853ca9e52b, type: 3}
@@ -116,7 +116,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _name: Move Card
   _manaCost: 1
-  _rarety: 0
+  _rarety: 10
   _cardType: 0
   _heroClass: 0
   _aeraOfEffect: 5

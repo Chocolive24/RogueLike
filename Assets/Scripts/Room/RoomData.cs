@@ -3,24 +3,35 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 using Random = UnityEngine.Random;
 
 public class RoomData
 {
-    public RoomData(BoundsInt bounds, int enemySpawnWeight, bool hasEnemiesToFight)
+    public enum RoomType
+    {
+        START,
+        BASIC,
+        SHOP,
+        END
+    }
+    
+    public RoomData(BoundsInt bounds, int distanceFromStart, int enemySpawnWeight, bool hasEnemiesToFight)
     {
         _bounds = bounds;
+        _distanceFromStart = distanceFromStart;
         _enemySpawnWeight = enemySpawnWeight;
         _hasEnemiesToFight = hasEnemiesToFight;
 
         _roomNeighbours = new Dictionary<Vector3Int, RoomData>();
         
+        _doorsData = new Dictionary<Vector3, Neighbourhood.Direction>();
+        _doors = new List<DoorTileCell>();
+        SetDoorsOpen(false);
+
+        _wallsPositions = new List<Vector3Int>();
+
         _tilePositions = new List<Vector3Int>();
-        SetAllTilePositions();
-
-        _doors = new Dictionary<Vector3, Neighbourhood.Direction>();
-
-        //GenerateEnemiesSpawnPoints();
     }
     
     // Attributes ------------------------------------------------------------------------------------------------------
@@ -29,12 +40,16 @@ public class RoomData
     private BoundsInt _bounds;
     private List<Vector3Int> _tilePositions;
     private Dictionary<Vector3Int, RoomData> _roomNeighbours;
-    private int _nbrOfIteration = 0;
 
-    private Dictionary<Vector3, Neighbourhood.Direction> _doors;
+    private int _distanceFromStart;
+
+    private Dictionary<Vector3, Neighbourhood.Direction> _doorsData;
+    private List<DoorTileCell> _doors;
+
+    private List<Vector3Int> _wallsPositions;
 
     #endregion;
-
+    
     #region Enemies Attributes
     
     private int _enemySpawnWeight;
@@ -43,8 +58,13 @@ public class RoomData
     
 
     #endregion
+    
+    private RoomType _type;
 
     // Getters and Setters ---------------------------------------------------------------------------------------------
+
+    #region Getters and Setters
+
     public BoundsInt Bounds
     {
         get => _bounds;
@@ -53,11 +73,21 @@ public class RoomData
 
     public int EnemySpawnWeight => _enemySpawnWeight;
 
-    public int NbrOfIteration
+    public bool HasEnemiesToFight
     {
-        get => _nbrOfIteration;
-        set => _nbrOfIteration = value;
+        get => _hasEnemiesToFight;
+        set => _hasEnemiesToFight = value;
     }
+
+    public RoomType Type => _type;
+
+    public int DistanceFromStart
+    {
+        get => _distanceFromStart;
+        set => _distanceFromStart = value;
+    }
+
+    public Dictionary<Vector3Int, RoomData> RoomNeighbours => _roomNeighbours;
 
     public List<Vector3Int> DoorPositions => new List<Vector3Int>()
     {
@@ -71,11 +101,45 @@ public class RoomData
         new (_bounds.xMin + (_bounds.size.x / 2), _bounds.yMin, 0),
     };
 
-    public Dictionary<Vector3, Neighbourhood.Direction> Doors => _doors;
+    public Dictionary<Vector3, Neighbourhood.Direction> DoorsData => _doorsData;
+
+    public List<Vector3Int> WallsPositions => _wallsPositions;
 
     public List<Vector3Int> TilePositions => _tilePositions;
 
+    #endregion
+
     // Methods ---------------------------------------------------------------------------------------------------------
+    public void SetType(RoomType type, Tilemap rndWallPattern)
+    {
+        _type = type;
+
+        switch (_type)
+        {
+            case RoomType.START:
+                _hasEnemiesToFight = false;
+                SetDoorsOpen(true);
+                SetAllTilePositions();
+                break;
+            case RoomType.BASIC:
+                _hasEnemiesToFight = true;
+                SetDoorsOpen(false);
+                SetWallPositions(rndWallPattern);
+                SetAllTilePositions();
+                break;
+            case RoomType.SHOP:
+                _hasEnemiesToFight = false;
+                SetDoorsOpen(true);
+                SetAllTilePositions();
+                break;
+            case RoomType.END:
+                _hasEnemiesToFight = true;
+                SetDoorsOpen(false);
+                SetAllTilePositions();
+                break;
+        }
+    }
+    
     private void SetAllTilePositions()
     {
         _tilePositions.Clear();
@@ -84,38 +148,36 @@ public class RoomData
         {
             for (int y = _bounds.yMin + 2; y < _bounds.yMax - 2; y++)
             {
-                _tilePositions.Add(new Vector3Int(x, y, 0));
+                if (!_wallsPositions.Contains(new Vector3Int(x, y, 0)))
+                {
+                    _tilePositions.Add(new Vector3Int(x, y, 0));
+                }
+            }
+        }
+    }
+
+    public void SetWallPositions(Tilemap rndWallPattern)
+    {
+        var tilemapBounds = rndWallPattern.cellBounds;
+
+        for (int x = tilemapBounds.xMin; x < tilemapBounds.xMax; x++)
+        {
+            for (int y = tilemapBounds.yMin; y < tilemapBounds.yMax; y++)
+            {
+                var tile = rndWallPattern.GetTile(new Vector3Int(x, y, 0));
+
+                if (tile)
+                {
+                    Vector3Int boundsCenterInt = new Vector3Int((int)_bounds.center.x, (int)_bounds.center.y, 0);
+
+                    Vector3Int wallTilePos = boundsCenterInt + new Vector3Int(x, y, 0);
+                    
+                    _wallsPositions.Add(wallTilePos);
+                }
             }
         }
     }
     
-    // Debug enemies TEst ----------------------------------------------------------------------------------------------
-    
-    // private void GenerateEnemiesSpawnPoints()
-    // {
-    //     int remainginWeight = _enemySpawnWeight;
-    //
-    //     while (remainginWeight > 0)
-    //     {
-    //         var weight = GetRandomEnemyWeight();
-    //
-    //         // TODO ne pas s'occuper des positions ici. le unitmanger le fera au début du jeu.
-    //         
-    //         var spawnPos = _tilePositions[Random.Range(0, _tilePositions.Count)];
-    //         
-    //         _enemiesToSpawnData[spawnPos] = weight;
-    //         
-    //         remainginWeight -= weight;
-    //     }
-    // }
-    //
-    // private int GetRandomEnemyWeight()
-    // {
-    //     return _enemiesData.OrderBy(o => Random.value).First().Weight;
-    // }
-
-    // End of Debug Part -----------------------------------------------------------------------------------------------
-
     public Vector3Int GetARandomTilePosition()
     {
         return _tilePositions[Random.Range(0, _tilePositions.Count)];
@@ -139,12 +201,25 @@ public class RoomData
                     Vector3 doorPos = DoorPositions[(int)neighbour.Key];
                     
                     doorPositions.Add(new Vector3Int((int)doorPos.x, (int)doorPos.y, 0));
-                    _doors[doorPos] = neighbour.Key;
+                    _doorsData[doorPos] = neighbour.Key;
                 }
             }
         }
         
         return doorPositions;
+    }
+
+    public void AddDoor(DoorTileCell door)
+    {
+        _doors.Add(door);
+    }
+
+    public void SetDoorsOpen(bool areOpen)
+    {
+        foreach (var door in _doors)
+        {
+            door.SetDoorOpen(areOpen);
+        }
     }
     
     public void AddRoomNeighbour(Vector3Int neighbourPos, RoomData roomNeighbour)

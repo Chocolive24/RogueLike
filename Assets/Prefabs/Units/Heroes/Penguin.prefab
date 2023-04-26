@@ -73,7 +73,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8236685592814318476, guid: 2d4ce61089d2b6944ab02f0b72330f1a, type: 3}
       propertyPath: m_Name
-      value: Paladin
+      value: Penguin
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 5539158917072157092, guid: 2d4ce61089d2b6944ab02f0b72330f1a, type: 3}
@@ -105,25 +105,36 @@ MonoBehaviour:
     UseConstant: 0
     ConstantValue: 0
     Variable: {fileID: 11400000, guid: ac36d26e88ddf124bb2c248e8cdaff9f, type: 2}
-  _attack:
+  _baseAttack:
     UseConstant: 0
     ConstantValue: 0
     Variable: {fileID: 11400000, guid: 4fb2bff2c7e868c40bd61d4021591daa, type: 2}
+  _currentAttack:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 11400000, guid: dd3b2393547b17f44804ddd294d5cfdf, type: 2}
   _shield:
     UseConstant: 0
     ConstantValue: 0
     Variable: {fileID: 11400000, guid: bc9d44cc035f66e4c8cc3d524dfd3689, type: 2}
-  _movement:
+  _baseMovement:
     UseConstant: 0
     ConstantValue: 0
     Variable: {fileID: 11400000, guid: 62c0e1bb0ecb4db4db61bb0776daeba5, type: 2}
+  _currentMovement:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 11400000, guid: edfde8e601a095349abae03370d94b8e, type: 2}
   _speed:
     UseConstant: 0
     ConstantValue: 0
     Variable: {fileID: 11400000, guid: 4560b11ed34c93c44824028003737d6c, type: 2}
-  _tileSize: 0
+  _unitData: {fileID: 11400000, guid: fc6b482a3e858e14fafdd8cf83a06ae6, type: 2}
   _heroClass: 0
-  _maxMana: 5
+  _maxMana:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 0}
   _exploreSpeed:
     UseConstant: 0
     ConstantValue: 0

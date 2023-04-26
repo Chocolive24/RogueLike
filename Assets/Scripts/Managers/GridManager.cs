@@ -24,7 +24,7 @@ public class GridManager : MonoBehaviour
 
     [SerializeField] private Tilemap _dungeonTilemap;
     [SerializeField] private Transform _camTrans;
-    [SerializeField] private Tilemap _currentRoomTilemap;
+    //[SerializeField] private Tilemap _currentRoomTilemap;
     [SerializeField] private RuleTile _groundRuleTile, _wallRuleTile;
 
     #endregion
@@ -33,7 +33,7 @@ public class GridManager : MonoBehaviour
 
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public Vector2 Size => new Vector2(_width, _height);
-    public Tilemap CurrentRoomTilemap => _currentRoomTilemap;
+    //public Tilemap CurrentRoomTilemap => _currentRoomTilemap;
     public Dictionary<Vector3, TileCell> Tiles => _tiles;
 
     // Methods ---------------------------------------------------------------------------------------------------------
@@ -147,6 +147,6 @@ public class GridManager : MonoBehaviour
 
     public Vector3 WorldToCellCenter(Vector3 position)
     {
-        return _currentRoomTilemap.GetCellCenterLocal(_currentRoomTilemap.WorldToCell(position));
+        return _dungeonTilemap.GetCellCenterLocal(_dungeonTilemap.WorldToCell(position));
     }
 }

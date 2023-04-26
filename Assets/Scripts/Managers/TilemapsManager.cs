@@ -90,6 +90,7 @@ public class TilemapsManager : MonoBehaviour
     ///                          Tiles to the availableTiles.</param>
     /// <returns></returns>
     public Dictionary<Vector3, int> GetAvailableTilesInRange(Vector3 startPos, int range, 
+        Dictionary<Neighbourhood.Direction, Vector2> neighbourhood,
         bool countHeroes, bool countEnemies)
     {
         var queue = new Queue<Vector3>();
@@ -101,9 +102,11 @@ public class TilemapsManager : MonoBehaviour
         {
             var currentPos = queue.Dequeue();
             
-            foreach (var direction in new Vector3[] { Vector3.up, Vector3.down, Vector3.left, Vector3.right })
+            foreach (var direction in neighbourhood)
             {
-                var neighbor = _gridManager.WorldToCellCenter(currentPos + direction);
+                Vector3 dir = new Vector3(direction.Value.x, direction.Value.y, 0);
+                
+                var neighbor = _gridManager.WorldToCellCenter(currentPos + dir);
 
                 if (IsPositionAvailable(neighbor, countHeroes, countEnemies) && 
                     !distances.ContainsKey(neighbor))

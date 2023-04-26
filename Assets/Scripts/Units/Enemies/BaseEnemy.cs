@@ -29,7 +29,7 @@ public class BaseEnemy : BaseUnit
     [SerializeField] protected int _maxNbrOfAttackPerTurn = 1;
     [SerializeField] protected int _maxNbrOfMovementPerTurn = 1;
     [SerializeField] protected int _minimumPathCount = 1;
-    
+
     protected int _nbrOfAttackPerformed = 0;
     protected int _nbrOfMovementPerformed = 0;
 
@@ -38,6 +38,8 @@ public class BaseEnemy : BaseUnit
 
 
     // References ------------------------------------------------------------------------------------------------------
+    private EnemyData _enemyData;
+    
     private BaseEnemyBT _behaviorTree;
     
 
@@ -107,6 +109,7 @@ public class BaseEnemy : BaseUnit
     protected override void Awake()
     {
         base.Awake();
+        SetData();
     }
 
     protected override void Start()
@@ -125,6 +128,19 @@ public class BaseEnemy : BaseUnit
         base.Update();
         Debug.Log("can attack " + CanAttack);
         Debug.Log("can move " + CanMove);
+    }
+
+    protected override void SetData()
+    {
+        base.SetData();
+        _enemyData = (EnemyData)_unitData;
+        
+        _type = _enemyData.Type;
+        _weight = _enemyData.Weight;
+        _attackRange = _enemyData.AttackRange;
+        _maxNbrOfAttackPerTurn = _enemyData.MaxNbrOfAttackPerTurn;
+        _maxNbrOfMovementPerTurn = _enemyData.MaxNbrOfMovementPerTurn;
+        _minimumPathCount = _enemyData.MinimumPathCount;
     }
 
     private void SetTurnValues(BattleManager battleManager)
@@ -207,14 +223,14 @@ public class BaseEnemy : BaseUnit
     
     public virtual void Attack(BaseHero heroTarget)
     {
-        heroTarget.TakeDamage(_attack.Value);
+        heroTarget.TakeDamage(_currentAttack.Value);
         _nbrOfAttackPerformed++;
     }
     
     public override void FindAvailablePathToTarget(Vector3 targetPos, int minimumPathCount, 
         bool countHeroes, bool countEnemies, bool countWalls)
     {
-        _availableTiles = GetAvailableTilesInRange(transform.position, _movement.Value, 
+        _availableTiles = GetAvailableTilesInRange(transform.position, _currentMovement.Value, 
             false, false);
 
         _path = FindPath(transform.position, targetPos, countHeroes, countEnemies, countWalls);
@@ -302,8 +318,8 @@ public class BaseEnemy : BaseUnit
     
     protected override void Kill()
     {
-        Destroy(_movementTilemap.gameObject);
-        Destroy(_attackTilemap.gameObject);
+        DestroyTilemaps();
+        
         _unitsManager.Enemies.Remove(this);
         base.Kill();
     }

@@ -113,22 +113,31 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
-  _attack:
+  _baseAttack:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 0}
+  _currentAttack:
     UseConstant: 1
-    ConstantValue: 5
+    ConstantValue: 0
     Variable: {fileID: 0}
   _shield:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
-  _movement:
+  _baseMovement:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 0}
+  _currentMovement:
     UseConstant: 1
-    ConstantValue: 5
+    ConstantValue: 0
     Variable: {fileID: 0}
   _speed:
     UseConstant: 1
     ConstantValue: 8
     Variable: {fileID: 0}
+  _unitData: {fileID: 11400000, guid: 9d014845c5a9a534f8188b024aac5a38, type: 2}
   _type: 0
   _weight: 1
   _attackRange: 1

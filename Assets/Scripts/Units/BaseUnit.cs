@@ -14,9 +14,11 @@ public class BaseUnit : MonoBehaviour
     [SerializeField] private Faction _faction;
     [SerializeField] protected IntReference _maxHP;
     [SerializeField] protected IntReference _currentHP;
-    [SerializeField] protected IntReference _attack;
+    [SerializeField] protected IntReference _baseAttack;
+    [SerializeField] protected IntReference _currentAttack;
     [SerializeField] protected IntReference _shield;
-    [SerializeField] protected IntReference _movement;
+    [SerializeField] protected IntReference _baseMovement;
+    [SerializeField] protected IntReference _currentMovement;
     [SerializeField] protected IntReference _speed;
    
     
@@ -38,6 +40,8 @@ public class BaseUnit : MonoBehaviour
     protected List<Vector3> _exploringPath;
     
     // References ------------------------------------------------------------------------------------------------------
+    [SerializeField] protected UnitData _unitData;
+    
     protected GameManager _gameManager;
     protected GridManager _gridManager;
     protected TilemapsManager _tilemapsManager;
@@ -63,9 +67,9 @@ public class BaseUnit : MonoBehaviour
     public IntReference MaxHp => _maxHP;
     public IntReference CurrentHp => _currentHP;
 
-    public IntReference AttackDamage => _attack;
+    public IntReference BaseAttackDamage => _baseAttack;
 
-    public IntReference Movement { get => _movement; }
+    public IntReference Movement { get => _baseMovement; }
 
     public List<TileCell> PreviousOccupiedTiles
     {
@@ -91,12 +95,16 @@ public class BaseUnit : MonoBehaviour
     // Methods ---------------------------------------------------------------------------------------------------------
     protected virtual void Awake()
     {
+        SetData();
+        
         _healthBar = GetComponent<HealthBar>();
     }
 
     protected virtual void Start()
     {
         _currentHP.SetValue(_maxHP.Value);
+        _currentAttack.SetValue(_baseAttack.Value);
+        _currentMovement.SetValue(_baseMovement.Value);
         
         _availableTiles = new Dictionary<Vector3, int>();
         _path = new List<Vector3>();
@@ -113,6 +121,16 @@ public class BaseUnit : MonoBehaviour
         //MoveOnGrid();
     }
 
+    protected virtual void SetData()
+    { 
+        _unitName = _unitData.UnitName;
+        _faction = _unitData.Faction;
+        _maxHP = _unitData.MaxHP;
+        _baseAttack = _unitData.Attack;
+        _baseMovement = _unitData.Movement;
+        _speed = _unitData.Speed;
+    }
+    
     public virtual void TakeDamage(int damage)
     {
         _currentHP.SubstractValue(damage);
@@ -232,7 +250,7 @@ public class BaseUnit : MonoBehaviour
 
     public virtual void DisplayStats()
     {
-        Debug.Log(_maxHP + " " +  _attack + " " + _shield);
+        Debug.Log(_maxHP + " " +  _baseAttack + " " + _shield);
     }
     
     protected virtual void Kill()
@@ -244,7 +262,8 @@ public class BaseUnit : MonoBehaviour
     public virtual Dictionary<Vector3, int> GetAvailableTilesInRange(Vector3 startPos, int range, 
         bool countHeroes, bool countEnemies)
     {
-        return _tilemapsManager.GetAvailableTilesInRange(startPos, range, countHeroes, countEnemies);
+        return _tilemapsManager.GetAvailableTilesInRange(startPos, range, 
+            Neighbourhood.CardinalNeighbours, countHeroes, countEnemies);
     }
     
     public virtual List<Vector3> FindPath(Vector3 startPos, Vector3 endPos, bool countHeroes, 

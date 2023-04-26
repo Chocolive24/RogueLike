@@ -153,7 +153,7 @@ public class UIBattleManager : MonoBehaviour
 
                     tileUnitObjTxt += "\n HP : " + enemy.CurrentHp.Value;
                 
-                    tileUnitObjTxt += "\n Damage : " + enemy.AttackDamage.Value;
+                    tileUnitObjTxt += "\n Damage : " + enemy.BaseAttackDamage.Value;
                 }
             }
             else if (hero)

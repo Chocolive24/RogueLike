@@ -146,7 +146,7 @@ public abstract class BaseCard : MonoBehaviour
     #endregion
     
     // Methods ---------------------------------------------------------------------------------------------------------
-    private void Awake()
+    protected virtual void Awake()
     {
         _availableTiles = new Dictionary<Vector3, int>();
         
@@ -167,9 +167,9 @@ public abstract class BaseCard : MonoBehaviour
         _cardEffectTxt = _textes[1];
 
         _manaNbrTxt.GetComponent<MeshRenderer>().sortingLayerName = "Card";
-        _manaNbrTxt.GetComponent<MeshRenderer>().sortingOrder = 2;
+        _manaNbrTxt.GetComponent<MeshRenderer>().sortingOrder = 10;
         _cardEffectTxt.GetComponent<MeshRenderer>().sortingLayerName = "Card";
-        _cardEffectTxt.GetComponent<MeshRenderer>().sortingOrder = 2;
+        _cardEffectTxt.GetComponent<MeshRenderer>().sortingOrder = 10;
 
         _canDrawTilemap = true;
         
@@ -240,7 +240,9 @@ public abstract class BaseCard : MonoBehaviour
 
         if (CheckIfCanBePlayed())
         {
-            transform.position = _cardPlayedManager._cardLocation.transform.position;
+            Vector3 pos = _cardPlayedManager._cardLocation.transform.position;
+            pos.z = 0;
+            transform.position = pos;
 
             _cardPlayedManager.CurrentCard = this;
         }
@@ -292,7 +294,7 @@ public abstract class BaseCard : MonoBehaviour
     {
         _availableTiles = _tilemapsManager.GetAvailableTilesInRange(
             _gridManager.WorldToCellCenter(GetStartingTile().transform.position),
-            _aeraOfEffect, false, true);
+            _aeraOfEffect, Neighbourhood.CardinalNeighbours, false, true);
     }
 
     public virtual void DrawTilemap(Dictionary<Vector3, int> availableNeighbours, 

@@ -9,9 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a96987a8032406e46a4a9a8271f89494, type: 3}
-  m_Name: Archer
+  m_Script: {fileID: 11500000, guid: 9ce14a34cd0da7c42af811f273a40e54, type: 3}
+  m_Name: PlayerCurrentAttack
   m_EditorClassIdentifier: 
-  _faction: 1
-  _baseUnitPrefab: {fileID: 6290915316528075013, guid: c6f4453c4b5903f428f021d864f0fdba, type: 3}
-  _weight: 2
+  Value: 0

@@ -10,10 +10,13 @@ public class DoorTileCell : TileCell
     private bool _isOpen;
 
     private RoomData _room;
-    private RoomData _nextRoom;
 
     private Neighbourhood.Direction _direction = Neighbourhood.Direction.NULL;
 
+    // References ------------------------------------------------------------------------------------------------------
+    [SerializeField] private SpriteRenderer _spriteRenderer;
+    [SerializeField] private GameObject _spriteGameObject;
+    
     // Events ----------------------------------------------------------------------------------------------------------
     public static event Action<DoorTileCell> OnDoorTileEnter;
 
@@ -22,12 +25,6 @@ public class DoorTileCell : TileCell
     {
         get => _room;
         set => _room = value;
-    }
-
-    public RoomData NextRoom
-    {
-        get => _nextRoom;
-        set => _nextRoom = value;
     }
 
     public Neighbourhood.Direction Direction
@@ -39,7 +36,7 @@ public class DoorTileCell : TileCell
     // Methods ---------------------------------------------------------------------------------------------------------
     private void Awake()
     {
-        SetDoorOpen(true);
+        
     }
 
     public override void SetUnit(BaseUnit unit)
@@ -81,5 +78,25 @@ public class DoorTileCell : TileCell
         Vector3Int nextRoomSpawnPos = new Vector3Int((int)position.x, (int)position.y, 0);
         
         return _room.GetRoomNeighbourByAPosition(nextRoomSpawnPos);
+    }
+
+    public void SetDirection(Neighbourhood.Direction direction)
+    {
+        _direction = direction;
+        
+        switch (direction)
+        {
+            case Neighbourhood.Direction.UP:
+                break;
+            case Neighbourhood.Direction.RIGHT:
+                _spriteGameObject.transform.Rotate(0, 0, -90f);
+                break;
+            case Neighbourhood.Direction.LEFT:
+                _spriteGameObject.transform.Rotate(0, 0, 90f);
+                break;
+            case Neighbourhood.Direction.DOWN:
+                _spriteRenderer.flipY = true;
+                break;
+        }
     }
 }

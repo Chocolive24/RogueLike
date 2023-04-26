@@ -212,13 +212,13 @@ public class Archer : BaseEnemy
 
     private TileCell FindFleeTile()
     {
-        int index = _movement.Value;
+        int index = _baseMovement.Value;
 
         float bestDistance = float.MinValue;
         TileCell bestTile = null;
 
         var avalaileTiles = GetAvailableTilesInRange(
-            transform.position, _movement.Value, false, false);
+            transform.position, _baseMovement.Value, false, false);
 
         while (index > 0)
         {

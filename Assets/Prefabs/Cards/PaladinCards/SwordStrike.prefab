@@ -108,7 +108,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _name: SwordStrike
   _manaCost: 1
-  _rarety: 0
+  _rarety: 10
   _cardType: 1
   _heroClass: 0
   _aeraOfEffect: 1

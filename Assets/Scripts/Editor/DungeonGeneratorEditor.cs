@@ -1,7 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+
 [CustomEditor(typeof(DungeonGenerator))]
 public class DungeonGeneratorEditor : Editor
 {

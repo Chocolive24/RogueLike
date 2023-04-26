@@ -101,29 +101,38 @@ MonoBehaviour:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
-  _attack:
+  _baseAttack:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 0}
+  _currentAttack:
     UseConstant: 1
-    ConstantValue: 3
+    ConstantValue: 0
     Variable: {fileID: 0}
   _shield:
     UseConstant: 1
     ConstantValue: 0
     Variable: {fileID: 0}
-  _movement:
+  _baseMovement:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 0}
+  _currentMovement:
     UseConstant: 1
-    ConstantValue: 4
+    ConstantValue: 0
     Variable: {fileID: 0}
   _speed:
     UseConstant: 1
     ConstantValue: 8
     Variable: {fileID: 0}
+  _unitData: {fileID: 11400000, guid: 679d2aa4bb6f68946a306cff2eac4e23, type: 2}
   _type: 3
   _weight: 5
   _attackRange: 1
   _maxNbrOfAttackPerTurn: 1
   _maxNbrOfMovementPerTurn: 1
   _minimumPathCount: 1
-  _minionScriptableUnit: {fileID: 11400000, guid: 61ea4ab1de10b35459e423d5c85eb6bf, type: 2}
+  minionUnitData: {fileID: 11400000, guid: b04d4fd6b0ddcd648a4350678ffda6b9, type: 2}
   _maxNbrOfMinion: 3
 --- !u!114 &-774162370051924527
 MonoBehaviour:

@@ -56,7 +56,7 @@ public class Tank : BaseEnemy
 
     protected override void FollowThePath(List<Vector3> pathToFollow)
     {
-        if (_currentTargetIndex < pathToFollow.Count - 1 && _nbrOfMovement < _movement.Value - 1) 
+        if (_currentTargetIndex < pathToFollow.Count - 1 && _nbrOfMovement < _baseMovement.Value - 1) 
         {
             _currentTargetIndex++;
 

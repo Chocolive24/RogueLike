@@ -20,7 +20,7 @@ public class BaseHero : BaseUnit
     #region Tweakable Values
 
     [SerializeField] protected HeroClass _heroClass;
-    [SerializeField] protected int _maxMana;
+    [SerializeField] protected IntReference _maxMana;
     [SerializeField] protected IntReference _exploreSpeed;
     [SerializeField] protected IntReference _battleSpeed;
 
@@ -53,6 +53,8 @@ public class BaseHero : BaseUnit
     private bool _canPlay;
 
     // References ------------------------------------------------------------------------------------------------------
+    private HeroData _heroData;
+    
     // private GameManager _gameManager;
     // private GridManager _gridManager;
     private CardPlayedManager _cardPlayedManager;
@@ -64,7 +66,7 @@ public class BaseHero : BaseUnit
 
     #region Getters and Setters
 
-    public int MaxMana { get => _maxMana; }
+    public IntReference MaxMana { get => _maxMana; }
 
     public int CurrentMana
     {
@@ -96,6 +98,18 @@ public class BaseHero : BaseUnit
         _cardHand = new List<BaseCard>();
     }
 
+    protected override void SetData()
+    {
+        _heroData = (HeroData)_unitData;
+        
+        base.SetData();
+        
+        _heroClass = _heroData.HeroClass;
+        _maxMana = _heroData.MaxMana;
+        _exploreSpeed = _heroData.ExploreSpeed;
+        _battleSpeed = _heroData.BattleSpeed;
+    }
+
     private void FindExploringPath(TileCell tile)
     {
         if (!_gameManager.IsInBattleState)
@@ -124,7 +138,7 @@ public class BaseHero : BaseUnit
     private void StartTurn(BattleManager obj)
     { 
         //_unitsManager.SetSelectedHero(this);
-        _currentMana = _maxMana;
+        _currentMana = _maxMana.Value;
         _canPlay = true;
         
         _mainDeck.SetButtonInteractavity(true);
@@ -147,7 +161,7 @@ public class BaseHero : BaseUnit
         
         InitializeDecks();
         
-        _currentMana = _maxMana;
+        _currentMana = _maxMana.Value;
     }
 
     // Update is called once per frame

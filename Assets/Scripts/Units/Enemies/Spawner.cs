@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Spawner : BaseEnemy
 {
-    [SerializeField] private ScriptableUnit _minionScriptableUnit;
+    [SerializeField] private UnitData minionUnitData;
 
     [SerializeField] private int _maxNbrOfMinion = 3;
     private List<BaseEnemy> _minions = new List<BaseEnemy>();
@@ -17,7 +17,7 @@ public class Spawner : BaseEnemy
     public void SpawnAMinion(Vector3 spawnPos)
     {
         Vector3 pos = GridManager.Instance.WorldToCellCenter(spawnPos);
-        var minionObject = _minionScriptableUnit.BaseUnitPrefab;
+        var minionObject = minionUnitData.BaseUnitPrefab;
         BaseEnemy EnemyMinionRef = (BaseEnemy)minionObject;
         
         BaseEnemy spawnedMinion = Instantiate(EnemyMinionRef, pos, Quaternion.identity);

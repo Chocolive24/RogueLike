@@ -20,7 +20,7 @@ public abstract class DeckController : MonoBehaviour
     
     // References ------------------------------------------------------------------------------------------------------
     protected UnitsManager _unitsManager;
-    
+
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public List<BaseCard> Deck => _deck;
     public HeroClass HeroClass => _heroClass;
@@ -31,15 +31,20 @@ public abstract class DeckController : MonoBehaviour
         set => _size = value;
     }
 
-    private void Awake()
+    protected virtual void Awake()
     {
-        
+        UnitsManager.OnHeroSpawn += SetDeck;
     }
-    
+
+    protected virtual void SetDeck(UnitsManager obj)
+    {
+        UpdateCardTxtNbr();
+    }
+
     // Start is called before the first frame update
     protected virtual void Start()
     {
-        UpdateCardTxtNbr();
+        _unitsManager = UnitsManager.Instance;
     }
 
     // Update is called once per frame
@@ -53,7 +58,7 @@ public abstract class DeckController : MonoBehaviour
         _button.interactable = interactable;
     }
 
-    protected void InstantiateBasicCard(List<ScriptableCard> scriptableCards, int cardNbr)
+    public void InstantiateBasicCard(List<ScriptableCard> scriptableCards, int cardNbr)
     {
         for (int i = 0; i < cardNbr; i++)
         {
@@ -77,8 +82,8 @@ public abstract class DeckController : MonoBehaviour
         
         UpdateCardTxtNbr();
 
-        card.OnDrawn += _unitsManager.HeroPlayer.AddCardToHand;
-        card.OnPerformed += _unitsManager.HeroPlayer.RemoveCardFromHand;
+        card.OnDrawn += UnitsManager.Instance.HeroPlayer.AddCardToHand;
+        card.OnPerformed += UnitsManager.Instance.HeroPlayer.RemoveCardFromHand;
     }
 
     public void DrawACard()

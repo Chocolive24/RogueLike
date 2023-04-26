@@ -87,7 +87,8 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 4548312822160360090, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
 --- !u!1 &4034793667372786226 stripped
 GameObject:
@@ -117,11 +118,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _name: Ground
-  _spriteRender: {fileID: 8621584989842547199}
+  _isWalkable: 1
+  _spriteRender: {fileID: 0}
   _highlight: {fileID: 7632378913658100553}
   _highlightBorder: {fileID: 4034793667372786226}
   _arrow: {fileID: 5547401093067419400}
-  _isWalkable: 1
   _arrows:
   - {fileID: -1840451443, guid: 015372037f7b4454da0da32b27a760ee, type: 3}
   - {fileID: -377742848, guid: 015372037f7b4454da0da32b27a760ee, type: 3}
@@ -132,10 +133,5 @@ MonoBehaviour:
 --- !u!1 &7632378913658100553 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2401394523178235948, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
-  m_PrefabInstance: {fileID: 5240184145335722853}
-  m_PrefabAsset: {fileID: 0}
---- !u!212 &8621584989842547199 stripped
-SpriteRenderer:
-  m_CorrespondingSourceObject: {fileID: 4548312822160360090, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
   m_PrefabInstance: {fileID: 5240184145335722853}
   m_PrefabAsset: {fileID: 0}

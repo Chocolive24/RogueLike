@@ -55,6 +55,38 @@ PrefabInstance:
       propertyPath: m_SortingLayerID
       value: 1625783719
       objectReference: {fileID: 0}
+    - target: {fileID: 4689059898971367273, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 7482667652216324306, guid: db750325989564987a34393247d883b4, type: 3}
+    - target: {fileID: 4689059898971367273, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+      propertyPath: m_Color.a
+      value: 0.5882353
+      objectReference: {fileID: 0}
+    - target: {fileID: 4689059898971367273, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+      propertyPath: m_Color.b
+      value: 0.83137256
+      objectReference: {fileID: 0}
+    - target: {fileID: 4689059898971367273, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+      propertyPath: m_Color.g
+      value: 0.43137255
+      objectReference: {fileID: 0}
+    - target: {fileID: 4689059898971367273, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+      propertyPath: m_Color.r
+      value: 0.03529412
+      objectReference: {fileID: 0}
+    - target: {fileID: 4689059898971367273, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+      propertyPath: m_SortingLayer
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4689059898971367273, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+      propertyPath: m_SortingOrder
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4689059898971367273, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
+      propertyPath: m_SortingLayerID
+      value: 1625783719
+      objectReference: {fileID: 0}
     - target: {fileID: 8429241850663707289, guid: e7c760cfa9d76bb4981d4e1bb8d5a2dd, type: 3}
       propertyPath: m_RootOrder
       value: 0
@@ -137,11 +169,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _name: 
+  _isWalkable: 1
   _spriteRender: {fileID: 8740499788474810876}
   _highlight: {fileID: 7422446542747433802}
   _highlightBorder: {fileID: 4112926204771467825}
   _arrow: {fileID: 4762037662257843979}
-  _isWalkable: 1
   _arrows:
   - {fileID: -1840451443, guid: 015372037f7b4454da0da32b27a760ee, type: 3}
   - {fileID: -377742848, guid: 015372037f7b4454da0da32b27a760ee, type: 3}

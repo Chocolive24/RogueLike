@@ -11,8 +11,8 @@ public class UnitsManager : MonoBehaviour
     public static UnitsManager Instance { get { return _instance; } }
 
     // Attributes ------------------------------------------------------------------------------------------------------
-    private List<ScriptableUnit> _units;
-    private List<ScriptableUnit> _enemiesData;
+    private List<HeroData> _heroesData;
+    private List<EnemyData> _enemiesData;
 
     private List<BaseHero> _heroes;
     private List<BaseEnemy> _enemies;
@@ -27,6 +27,8 @@ public class UnitsManager : MonoBehaviour
 
     [SerializeField] private AI_TypeSO _aiTypeSO;
     private float _betweenTurnsTime = 0.5f;
+
+    private RoomData _currentRoom;
 
     // Events ----------------------------------------------------------------------------------------------------------
     public static event Action OnEnemiesTurnEnd;
@@ -53,8 +55,8 @@ public class UnitsManager : MonoBehaviour
             _instance = this;
         }
 
-        _units = Resources.LoadAll<ScriptableUnit>("Units").ToList();
-        _enemiesData = Resources.LoadAll<ScriptableUnit>("Units/Enemies").ToList();
+        _heroesData = Resources.LoadAll<HeroData>("Units").ToList();
+        _enemiesData = Resources.LoadAll<EnemyData>("Units/Enemies").ToList();
         
         _heroes = new List<BaseHero>();
         _enemies = new List<BaseEnemy>();
@@ -66,33 +68,62 @@ public class UnitsManager : MonoBehaviour
 
     private void SpawnRoomEnemies(DoorTileCell doorTile)
     {
-        RoomData roomToSpawnEnemy = doorTile.GetRoomNeighbour();
+        _currentRoom = doorTile.GetRoomNeighbour();
 
-        if (roomToSpawnEnemy != null)
+        if (_currentRoom == null)
         {
-            int remainginWeight = roomToSpawnEnemy.EnemySpawnWeight;
-            
+            return;
+        }
+        
+        if (_currentRoom.HasEnemiesToFight)
+        {
+            int remainginWeight = _currentRoom.EnemySpawnWeight;
+        
             while (remainginWeight > 0)
             {
-                BaseEnemy enemy = GetRandomEnemyUnderWeight(remainginWeight);
-            
+                BaseEnemy enemy = GetAnEnemyByType(EnemyType.SPAWNER);
+                //BaseEnemy enemy = GetRandomEnemyUnderWeight(remainginWeight);
+
+                bool isPosValid = false;
+                
+                //Vector3Int randomSpawnPos = new Vector3Int();
+                
+                var randomSpawnPos = _currentRoom.GetARandomTilePosition();
+                
+                // do
+                // {
+                //     randomSpawnPos = _currentRoom.GetARandomTilePosition();
+                //
+                //     enemy.transform.position = randomSpawnPos;
+                //     
+                //     foreach (var tile in enemy.GetOccupiedTiles())
+                //     {
+                //         if (!tile.Walkable)
+                //         {
+                //             continue;
+                //         }
+                //
+                //         isPosValid = true;
+                //     }
+                //     
+                // } while (!isPosValid);
+                
                 var spawnedEnemy = Instantiate(enemy);
-            
-                var randomSpawnPos = roomToSpawnEnemy.GetARandomTilePosition();
+                
                 spawnedEnemy.transform.position = _gridManager.WorldToCellCenter(randomSpawnPos);
-            
+        
                 spawnedEnemy.PreviousOccupiedTiles = spawnedEnemy.GetOccupiedTiles();
-            
+        
                 foreach (var tile in spawnedEnemy.GetOccupiedTiles())
                 {
                     tile.SetUnit(spawnedEnemy);
                 }
-            
+        
                 _enemies.Add(spawnedEnemy);
-            
+        
                 spawnedEnemy.OnTurnFinished += SetNextEnemyTurn;
                 spawnedEnemy.OnDeath += HandleEnemyDeath;
-            
+        
                 remainginWeight -= spawnedEnemy.Weight;
             }
         }
@@ -318,18 +349,26 @@ public class UnitsManager : MonoBehaviour
     private void HandleEnemyDeath(BaseUnit obj)
     {
         _enemies.Remove((BaseEnemy)obj);
+
+        if (_enemies.Count == 0)
+        {
+            _currentRoom.HasEnemiesToFight = false;
+            _currentRoom.SetDoorsOpen(true);
+        }
     }
     
     private T GetRandomUnit<T>(Faction faction) where T : BaseUnit
     {
-        return (T)_units.Where(u => u.Faction == faction).OrderBy
+        return (T)_heroesData.Where(u => u.Faction == faction).OrderBy
             (o => Random.value).First().BaseUnitPrefab;
     }
 
     private BaseEnemy GetAnEnemyByType(EnemyType type)
     {
-        return (BaseEnemy)_enemiesData.Find(
+        var test = (BaseEnemy)_enemiesData.Find(
             x => x.BaseUnitPrefab.GetComponent<BaseEnemy>().Type == type).BaseUnitPrefab;
+
+        return test;
     }
     
     private IEnumerator WaitBeforeNextActionCo()

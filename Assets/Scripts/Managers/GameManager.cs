@@ -71,11 +71,11 @@ public class GameManager : MonoBehaviour
 
         if (roomToSetFight != null)
         {
-            // TODO Check le hasAFightInIt et set le battle state a true si y'a un fight.
+            if (roomToSetFight.HasEnemiesToFight)
+            {
+                _isInBattleState = true;
+            }
         }
-        
-        
-        _isInBattleState = true;
     }
 
     // Start is called before the first frame update

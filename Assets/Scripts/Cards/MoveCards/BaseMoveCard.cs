@@ -38,7 +38,12 @@ public class BaseMoveCard : BaseCard
     #endregion
     
     // Methods ---------------------------------------------------------------------------------------------------------
-    
+    protected override void Awake()
+    {
+        base.Awake();
+        _cardEffectTxt.text = "Move " + _aeraOfEffect + "\n squares \n";
+    }
+
     protected override void Start()
     {
         base.Start();
@@ -48,7 +53,6 @@ public class BaseMoveCard : BaseCard
     protected override void Update()
     {
         base.Update();
-        _cardEffectTxt.text = "Move " + _aeraOfEffect + "\n squares \n";
     }
 
     public override void ActivateCardEffect(TileCell tile)
@@ -88,7 +92,7 @@ public class BaseMoveCard : BaseCard
     {
         _availableTiles = _tilemapsManager.GetAvailableTilesInRange(
             _gridManager.WorldToCellCenter(GetStartingTile().transform.position),
-            _aeraOfEffect, false, false);
+            _aeraOfEffect, Neighbourhood.CardinalNeighbours, false, false);
     }
 
     public override void ResetProperties()

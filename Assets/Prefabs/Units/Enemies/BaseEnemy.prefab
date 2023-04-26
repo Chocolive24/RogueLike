@@ -89,10 +89,42 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _unitName: Enemy
   _faction: 1
-  _maxHP: 0
-  _attack: 5
-  _shield: 0
-  _movement: 5
-  _speed: 8
+  _maxHP:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 0}
+  _currentHP:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 0}
+  _baseAttack:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 0}
+  _currentAttack:
+    UseConstant: 1
+    ConstantValue: 0
+    Variable: {fileID: 0}
+  _shield:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 0}
+  _baseMovement:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 0}
+  _currentMovement:
+    UseConstant: 1
+    ConstantValue: 0
+    Variable: {fileID: 0}
+  _speed:
+    UseConstant: 0
+    ConstantValue: 0
+    Variable: {fileID: 0}
+  _unitData: {fileID: 0}
+  _type: 0
+  _weight: 0
   _attackRange: 0
   _maxNbrOfAttackPerTurn: 1
+  _maxNbrOfMovementPerTurn: 1
+  _minimumPathCount: 1
