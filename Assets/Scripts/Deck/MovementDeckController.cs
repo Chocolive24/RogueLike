@@ -9,9 +9,13 @@ public class MovementDeckController : DeckController
     
     // Start is called before the first frame update
     
-    protected override void SetDeck(UnitsManager obj)
+    protected override void SetDeck(UnitsManager obj, BaseHero hero)
     {
-        base.SetDeck(obj);
-        InstantiateBasicCard(CardsManager.Instance.ScrBasicMoveCards, _basicMoveCardNbr);
+        base.SetDeck(obj, hero);
+        if (!hero.MovementDeck)
+        {
+            hero.MovementDeck = this;
+            InstantiateBasicCard(CardsManager.Instance.ScrBasicMoveCards, _basicMoveCardNbr);
+        }
     }
 }

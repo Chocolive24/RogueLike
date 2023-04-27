@@ -20,9 +20,9 @@ public class CardPlayedManager : MonoBehaviour
     #region Card Emplacements
 
     [Header("Card Emplacements")]
-    [SerializeField] public GameObject _cardLocation;
-    [SerializeField] public GameObject _cardLimit;
-    [SerializeField] private Transform[] _cardSlots;
+    [SerializeField] private RectTransform _cardLocation;
+    [SerializeField] public RectTransform _cardLimit;
+    [SerializeField] private RectTransform[] _cardSlots;
     [SerializeField] private bool[] _availableCardSlots;
 
     #endregion
@@ -48,6 +48,7 @@ public class CardPlayedManager : MonoBehaviour
     // References ------------------------------------------------------------------------------------------------------
     private TilemapsManager _tilemapsManager;
     private GridManager _gridManager;
+    private UnitsManager _unitsManager;
     
     // Getters and Setters ---------------------------------------------------------------------------------------------
 
@@ -60,12 +61,14 @@ public class CardPlayedManager : MonoBehaviour
     }
     public bool HasACardOnIt => _hasAMoveCardOnIt || _hasAnAttackCardOnIt || _hasADefendCardOnIt;
 
-    public Transform[] CardSlots => _cardSlots;
+    public RectTransform[] CardSlots => _cardSlots;
     public bool[] AvailableCardSlots
     {
         get => _availableCardSlots;
         set => _availableCardSlots = value;
     }
+
+    public RectTransform CardLocation => _cardLocation;
 
     #endregion
     
@@ -89,40 +92,43 @@ public class CardPlayedManager : MonoBehaviour
             _availableCardSlots[i] = true;
         }
 
+        BaseCard.OnPlayEnter += OnCardEnter;
+        BaseCard.OnPlayExit += OnCardExit;
+        
         TileCell.OnTileSelected += PlayCurrentCard;
     }
+    
     
     // Start is called before the first frame update
     void Start()
     {
         _tilemapsManager = TilemapsManager.Instance;
         _gridManager = GridManager.Instance;
-        
+        _unitsManager = UnitsManager.Instance;
+
         Cursor.SetCursor(_baseMouseCursor, Vector2.zero, CursorMode.ForceSoftware);
     }
-
-    private void OnTriggerEnter2D(Collider2D col)
+    
+    private void OnCardEnter(BaseCard card)
     {
-        // TODO Change Cursor to down arrow
-        
-        if (col.CompareTag("Card") && !HasACardOnIt)
+        if (!HasACardOnIt)
         {
-            _currentCard = col.GetComponent<BaseCard>();
+            _currentCard = card;
             
-            if (col.GetComponent<BaseMoveCard>())
+            if (card.GetComponent<BaseMoveCard>())
             {
                 _hasAMoveCardOnIt = true;
             }
-            else if (col.GetComponent<BaseAttackCard>())
+            else if (card.GetComponent<BaseAttackCard>())
             {
                 _hasAnAttackCardOnIt = true;
             }
 
-            DrawCurrentCardTilemap(col.GetComponent<BaseCard>());
+            DrawCurrentCardTilemap(card);
         }
     }
 
-    private void OnTriggerExit2D(Collider2D other)
+    private void OnCardExit(BaseCard obj)
     {
         // TODO Change the mouse cursor
         
@@ -130,7 +136,7 @@ public class CardPlayedManager : MonoBehaviour
         
         ClearCardLocation();
     }
-
+    
     private void DrawCurrentCardTilemap(BaseCard card)
     {
         if (!card.AoeTilemap)
@@ -176,20 +182,22 @@ public class CardPlayedManager : MonoBehaviour
     {
         if (_currentCard)
         {
-            Destroy(_currentCard.AoeTilemap.gameObject);
-
-            if (_currentCard.CardType == CardType.MoveCard)
+            if (_currentCard.AoeTilemap)
             {
-                BaseMoveCard card = _currentCard.GetComponent<BaseMoveCard>();
-            
-                foreach (var item in card.Path)
+                Destroy(_currentCard.AoeTilemap.gameObject);
+
+                if (_currentCard.CardType == CardType.MoveCard)
                 {
-                    var tile = _gridManager.GetTileAtPosition(item.Key);
-                    tile.Arrow.SetActive(false);
+                    BaseMoveCard card = _currentCard.GetComponent<BaseMoveCard>();
+            
+                    foreach (var item in card.Path)
+                    {
+                        var tile = _gridManager.GetTileAtPosition(item.Key);
+                        tile.Arrow.SetActive(false);
+                    }
                 }
             }
         }
-        
     }
     
     private void MoveCardToHisDiscardPile()
@@ -198,29 +206,23 @@ public class CardPlayedManager : MonoBehaviour
         {
             if (_currentCard.HeroClass == HeroClass.PALADIN)
             {
-                MoveToDiscardPile(_paladinMovDiscDeckContr);
+                MoveToDiscardPile(_paladinMovDiscDeckContr, _unitsManager.HeroPlayer.MovementDeck);
             }
         }
         else if (_currentCard.CardType == CardType.Attackcard)
         {
             if (_currentCard.HeroClass == HeroClass.PALADIN)
             {
-                MoveToDiscardPile(_paladinMainDiscDeckContr);
+                MoveToDiscardPile(_paladinMainDiscDeckContr, _unitsManager.HeroPlayer.MainDeck);
             }
         }
         
         _currentCard.HasBeenPlayed = true;
     }
 
-    private void MoveToDiscardPile(DiscardDeckController discardDeckController)
+    private void MoveToDiscardPile(DiscardDeckController discardDeckController, DeckController deck)
     {
-        discardDeckController.DiscardDeck.Add(_currentCard);
-        
-        var currentCardTrans = _currentCard.transform;
-        var moveDeckTrans = discardDeckController.transform;
-        
-        currentCardTrans.position = moveDeckTrans.position;
-        currentCardTrans.parent = moveDeckTrans;
+        discardDeckController.AddACard(_currentCard, deck);
     }
 
     private void ClearCardLocation()

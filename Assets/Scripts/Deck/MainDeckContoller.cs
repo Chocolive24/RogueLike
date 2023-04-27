@@ -8,9 +8,13 @@ public class MainDeckContoller : DeckController
     [SerializeField] private int _basicAttCardNbr = 4;
     [SerializeField] private int _basicDefCardNbr = 4;
     
-    protected override void SetDeck(UnitsManager obj)
+    protected override void SetDeck(UnitsManager obj, BaseHero hero)
     {
-        base.SetDeck(obj);
-        InstantiateBasicCard(CardsManager.Instance.ScrBasicAttackCards, _basicAttCardNbr);
+        base.SetDeck(obj, hero);
+        if (!hero.MainDeck)
+        {
+            hero.MainDeck = this;
+            InstantiateBasicCard(CardsManager.Instance.ScrBasicAttackCards, _basicAttCardNbr);
+        }
     }
 }

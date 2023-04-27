@@ -139,6 +139,8 @@ public class TileCell : MonoBehaviour
     
     protected virtual void OnMouseEnter()
     {
+        Debug.Log("OnMouse : tile");
+        
         _highlight.SetActive(true);
         _highlightBorder.SetActive(true);
         

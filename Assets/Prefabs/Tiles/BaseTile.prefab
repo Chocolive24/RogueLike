@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9207919034060487292}
   - component: {fileID: 5277547062190880825}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Arrow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -94,7 +94,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8429241850663707289}
   - component: {fileID: 190162424394801080}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: BaseTile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -156,7 +156,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3897062262645582538}
   - component: {fileID: 4811161582169679771}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Highlight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -240,7 +240,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3635356601566864998}
   - component: {fileID: 4689059898971367273}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -324,7 +324,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4319780019375937582}
   - component: {fileID: 1184784357796646008}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: HighLightBorder
   m_TagString: Untagged
   m_Icon: {fileID: 0}

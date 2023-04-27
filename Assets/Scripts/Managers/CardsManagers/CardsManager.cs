@@ -22,9 +22,9 @@ public class CardsManager : MonoBehaviour
     [SerializeField] private MainDeckContoller _mainDeckContoller;
     [SerializeField] private MovementDeckController _movementDeckController;
     
-    [SerializeField] private Transform _reward1Trans;
-    [SerializeField] private Transform _reward2Trans;
-    [SerializeField] private Transform _reward3Trans;
+    [SerializeField] private RectTransform _reward1Trans;
+    [SerializeField] private RectTransform _reward2Trans;
+    [SerializeField] private RectTransform _reward3Trans;
 
     [SerializeField] private GameObject _victoryPanel;
 
@@ -82,19 +82,22 @@ public class CardsManager : MonoBehaviour
 
             var card = GetRandomCard<BaseCard>(rndList, Rarety.Basic);
             BaseCard spawnedCard = null;
-            
+
             switch (i)
             {
                 case 0:
                     spawnedCard = Instantiate(card, _reward1Trans.position, Quaternion.identity);
+                    spawnedCard.transform.parent = _reward1Trans.transform;
                     spawnedCards.Add(spawnedCard);
                     break;
                 case 1:
                     spawnedCard = Instantiate(card, _reward2Trans.position, Quaternion.identity);
+                    spawnedCard.transform.parent = _reward2Trans.transform;
                     spawnedCards.Add(spawnedCard);
                     break;
                 case 2:
                     spawnedCard = Instantiate(card, _reward3Trans.position, Quaternion.identity);
+                    spawnedCard.transform.parent = _reward3Trans.transform;
                     spawnedCards.Add(spawnedCard);
                     break;
             }

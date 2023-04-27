@@ -27,9 +27,7 @@ public class Room : MonoBehaviour
     
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public RoomType Type => _type;
-
     
-
     // Methods ---------------------------------------------------------------------------------------------------------
 
     private void OnTriggerEnter2D(Collider2D col)

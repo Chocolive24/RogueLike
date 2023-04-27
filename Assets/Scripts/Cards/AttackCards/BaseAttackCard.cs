@@ -29,13 +29,13 @@ public class BaseAttackCard : BaseCard
     protected override void Start()
     {
         base.Start();
+        _cardEffectTxt.text = "Deal " + _damage + "\n damage \n";
     }
 
     // Update is called once per frame
     protected override void Update()
     {
         base.Update();
-        _cardEffectTxt.text = "Deal " + _damage + "\n damage \n";
     }
 
     public override void ActivateCardEffect(TileCell tile)

@@ -21,6 +21,11 @@ public abstract class DeckController : MonoBehaviour
     // References ------------------------------------------------------------------------------------------------------
     protected UnitsManager _unitsManager;
 
+    [SerializeField] protected GameObject _parentObject;
+    
+    // Events ----------------------------------------------------------------------------------------------------------
+    public static event Action<DeckController> OnDeckEmpty;
+
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public List<BaseCard> Deck => _deck;
     public HeroClass HeroClass => _heroClass;
@@ -36,7 +41,7 @@ public abstract class DeckController : MonoBehaviour
         UnitsManager.OnHeroSpawn += SetDeck;
     }
 
-    protected virtual void SetDeck(UnitsManager obj)
+    protected virtual void SetDeck(UnitsManager obj, BaseHero hero)
     {
         UpdateCardTxtNbr();
     }
@@ -101,6 +106,11 @@ public abstract class DeckController : MonoBehaviour
                     rndCard.transform.position = CardPlayedManager.Instance.CardSlots[i].position;
                     CardPlayedManager.Instance.AvailableCardSlots[i] = false;
                     _deck.Remove(rndCard);
+
+                    if (_deck.Count == 0)
+                    {
+                        OnDeckEmpty?.Invoke(this);
+                    }
                     
                     UpdateCardTxtNbr();
                     return;

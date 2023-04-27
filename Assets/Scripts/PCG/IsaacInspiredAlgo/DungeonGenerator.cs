@@ -1,28 +1,35 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
+using Range = UnityEngine.SocialPlatforms.Range;
 
 public class DungeonGenerator : MonoBehaviour
 {
     // Attributes ------------------------------------------------------------------------------------------------------
     
     // The size of the grid where we generate our rooms.
-    [SerializeField] private Vector2Int _gridSize;
+    private Vector2Int _gridSize = new Vector2Int(8, 8);
     
-    [Header("Room Attributes")]
     // The size of a simple room.
-    [SerializeField] private Vector3Int _roomSize;
+    private Vector3Int _roomSize;
 
-    [SerializeField] private int _minNbrOfRooms = 7, _maxNbrOfRooms = 10;
+    [Header("Room Attributes")]
+    [SerializeField][Range(5, 30)] private int _minNbrOfRooms = 7;
+    [SerializeField] [Range(5, 30)] private int _maxNbrOfRooms = 10;
     private int _nbrOfRooms;
     
-    [SerializeField] private int _minEnemyWeight = 5, _maxEnemyWeight = 7;
+    [SerializeField][Range(1, 30)] private int _minEnemyWeight = 5, _maxEnemyWeight = 7;
+    private int _enemyWeight;
 
+    [SerializeField] private bool _withWallsInside = true;
+    
     private Dictionary<Vector3Int, RoomData> _rooms;
     private RoomData _startRoom;
     private HashSet<RoomData> _endRooms;
@@ -62,6 +69,8 @@ public class DungeonGenerator : MonoBehaviour
 
     public void Generate()
     {
+        _roomSize = new Vector3Int(19, 11);
+        
         _gridSizeMultipliedByRoomSize.x = _gridSize.x * _roomSize.x;
         _gridSizeMultipliedByRoomSize.y = _gridSize.y * _roomSize.y;
         
@@ -69,7 +78,16 @@ public class DungeonGenerator : MonoBehaviour
         _endRooms = new HashSet<RoomData>();
         _occupiedPositions = new HashSet<Vector3Int>();
 
-        _nbrOfRooms = Random.Range(_minNbrOfRooms, _maxNbrOfRooms + 1);
+        if (_maxNbrOfRooms < _minNbrOfRooms)
+        {
+            _maxNbrOfRooms = _minNbrOfRooms;
+        }
+
+        _nbrOfRooms = _maxNbrOfRooms >= _minNbrOfRooms ?
+            Random.Range(_minNbrOfRooms, _maxNbrOfRooms + 1) : _minNbrOfRooms;
+        
+        _enemyWeight = _maxEnemyWeight >= _minEnemyWeight ?
+            Random.Range(_minEnemyWeight, _maxEnemyWeight + 1) : _minEnemyWeight;
         
         do
         {
@@ -338,9 +356,12 @@ public class DungeonGenerator : MonoBehaviour
 
         PaintDoors(tilemap, room, roomDoorsPosition);
 
-        if (room != _startRoom && room != _finalRoom)
+        if (_withWallsInside)
         {
-            PaintRoomWallPattern(tilemap, room);
+            if (room != _startRoom && room != _finalRoom)
+            {
+                PaintRoomWallPattern(tilemap, room);
+            }
         }
     }
     

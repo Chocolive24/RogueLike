@@ -52,15 +52,6 @@ public abstract class BaseCard : MonoBehaviour
     
     #endregion
 
-    #region TextMeshPro Attributes
-
-    protected TextMeshPro _manaNbrTxt;
-    protected TextMeshPro _cardEffectTxt;
-
-    protected TextMeshPro[] _textes;
-
-    #endregion
-
     #region Tile Attributes
 
     protected Tilemap _aoeTilemap;
@@ -103,8 +94,13 @@ public abstract class BaseCard : MonoBehaviour
     
     #endregion
     
+    [SerializeField] protected TextMeshProUGUI _manaNbrTxt;
+    [SerializeField] protected TextMeshProUGUI _cardEffectTxt;
+    
     // Events ----------------------------------------------------------------------------------------------------------
     public event Action<BaseCard> OnDrawn;
+    public static event Action<BaseCard> OnPlayEnter; 
+    public static event Action<BaseCard> OnPlayExit; 
     public event Action<BaseCard> OnPerformed; 
     public event Action<BaseCard> OnCollected;
 
@@ -161,15 +157,15 @@ public abstract class BaseCard : MonoBehaviour
     {
         // Get all TextMeshPro Components in children from the highest in the hierarchy to the lowest.
         // So the element 0 would be the manaNbrTxt and the 1 would be the cardEffectTxt.
-        _textes = GetComponentsInChildren<TextMeshPro>();
+        // _textes = GetComponentsInChildren<TextMeshPro>();
+        //
+        // _manaNbrTxt = _textes[0];
+        // _cardEffectTxt = _textes[1];
 
-        _manaNbrTxt = _textes[0];
-        _cardEffectTxt = _textes[1];
-
-        _manaNbrTxt.GetComponent<MeshRenderer>().sortingLayerName = "Card";
-        _manaNbrTxt.GetComponent<MeshRenderer>().sortingOrder = 10;
-        _cardEffectTxt.GetComponent<MeshRenderer>().sortingLayerName = "Card";
-        _cardEffectTxt.GetComponent<MeshRenderer>().sortingOrder = 10;
+        // _manaNbrTxt.GetComponent<MeshRenderer>().sortingLayerName = "Card";
+        // _manaNbrTxt.GetComponent<MeshRenderer>().sortingOrder = 0;
+        // _cardEffectTxt.GetComponent<MeshRenderer>().sortingLayerName = "Card";
+        // _cardEffectTxt.GetComponent<MeshRenderer>().sortingOrder = 0;
 
         _canDrawTilemap = true;
         
@@ -217,7 +213,7 @@ public abstract class BaseCard : MonoBehaviour
         _stateMachine.Tick();
     }   
     
-    private void OnMouseDown()
+    public void OnClick()
     {
         if (_isCollected)
         {
@@ -236,22 +232,25 @@ public abstract class BaseCard : MonoBehaviour
         if (_cardPlayedManager.CurrentCard == this)
         {
             transform.position = _cardPlayedManager.CardSlots[_handIndex].position;
+            OnPlayExit?.Invoke(this);
         }
 
-        if (CheckIfCanBePlayed())
+        else if (CheckIfCanBePlayed())
         {
-            Vector3 pos = _cardPlayedManager._cardLocation.transform.position;
+            Vector3 pos = _cardPlayedManager.CardLocation.position;
             pos.z = 0;
             transform.position = pos;
 
-            _cardPlayedManager.CurrentCard = this;
+            OnPlayEnter?.Invoke(this);
         }
     }
 
     public abstract void ActivateCardEffect(TileCell tile);
 
-    protected virtual void OnMouseEnter()
+    public virtual void OnEventTriggerEnter()
     {
+        _canDrawTilemap = true;
+        
         if (!_aoeTilemap && _isCollected && _canDrawTilemap)
         {
             _aoeTilemap = _tilemapsManager.InstantiateTilemap(_name + " aoe");
@@ -262,7 +261,7 @@ public abstract class BaseCard : MonoBehaviour
         }
     }
 
-    protected virtual void OnMouseExit()
+    public virtual void OnEventTriggerExit()
     {
         if (_cardPlayedManager.CurrentCard != this && _aoeTilemap)
         {
@@ -284,7 +283,7 @@ public abstract class BaseCard : MonoBehaviour
     
     protected virtual bool CheckIfIsPlayed()
     {
-        return transform.position == _cardPlayedManager._cardLocation.transform.position;
+        return transform.position == _cardPlayedManager.CardLocation.transform.position;
     }
 
     protected abstract bool CheckIfHasPerformed();

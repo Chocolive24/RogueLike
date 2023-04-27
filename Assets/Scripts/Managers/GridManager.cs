@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -31,6 +32,9 @@ public class GridManager : MonoBehaviour
 
     [SerializeField] private DungeonGenerator _dungeonGenerator;
 
+    // Events ----------------------------------------------------------------------------------------------------------
+    public static event Action<GridManager, RoomData> OnDungeonGenerate;
+    
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public Vector2 Size => new Vector2(_width, _height);
     //public Tilemap CurrentRoomTilemap => _currentRoomTilemap;
@@ -48,8 +52,6 @@ public class GridManager : MonoBehaviour
             _instance = this;
         }
 
-        Room.OnRoomEnter += GetRoomTiles;
-        
         GenerateGrid();
     }
 
@@ -80,6 +82,8 @@ public class GridManager : MonoBehaviour
             _tiles[WorldToCellCenter(tile.transform.position)] = tile;
         }
 
+        OnDungeonGenerate?.Invoke(this, _dungeonGenerator.Rooms.First().Value);
+        
         //_camTrans.transform.position = new Vector3((float)_width / 2f - 0.5f, 
                      //(float)_height / 2f - 0.5f -1f, -10);
     }

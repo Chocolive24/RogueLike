@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: MoveCard
   m_EditorClassIdentifier: 
   _rarety: 10
-  _baseCardPrefab: {fileID: 2021867194539880225, guid: 06d074f0e2e1617428b0bd3dca985061, type: 3}
+  _baseCardPrefab: {fileID: 1708276804, guid: 2d318bb797e5ea14db40b3574cf9a7b9, type: 3}

@@ -76,6 +76,30 @@ public class BaseHero : BaseUnit
 
     public bool CanPlay => _canPlay;
 
+    public DeckController MovementDeck
+    {
+        get => _movementDeck;
+        set => _movementDeck = value;
+    }
+
+    public DeckController MainDeck
+    {
+        get => _mainDeck;
+        set => _mainDeck = value;
+    }
+
+    public DiscardDeckController MovDiscardDeck
+    {
+        get => _movDiscardDeck;
+        set => _movDiscardDeck = value;
+    }
+
+    public DiscardDeckController MainDiscardDeck
+    {
+        get => _mainDiscardDeck;
+        set => _mainDiscardDeck = value;
+    }
+
     // public Dictionary<Vector3, int> Path
     // {
     //     get => _path1;
@@ -94,6 +118,7 @@ public class BaseHero : BaseUnit
         BattleManager.OnPlayerTurnEnd += EndTurn;
         BattleManager.OnBattleEnd += PutAllCardsInDecks;
         TileCell.OnTileSelected += FindExploringPath;
+        DiscardDeckController.OnDiscarFull += ShuffleCardsBackToDeck;
 
         _cardHand = new List<BaseCard>();
     }
@@ -159,7 +184,7 @@ public class BaseHero : BaseUnit
         base.Start();
         _cardPlayedManager = CardPlayedManager.Instance;
         
-        InitializeDecks();
+        //InitializeDecks();
         
         _currentMana = _maxMana.Value;
     }
@@ -172,9 +197,7 @@ public class BaseHero : BaseUnit
         base.Update();
         
         MoveOnGrid();
-        
-        ShuffleCardsBackToDeck();
-        
+
         Debug.Log(_cardHand.Count);
     }
 
@@ -197,37 +220,41 @@ public class BaseHero : BaseUnit
         OnMovement?.Invoke(this);
     }
 
-    private void ShuffleCardsBackToDeck()
+    private void ShuffleCardsBackToDeck(DiscardDeckController discardDeckController)
     {
-        if (_movDiscardDeck.DiscardDeck.Count >= _movementDeck.Size)
-        {
-            _movDiscardDeck.ShuffleCardsBackToDeck(_movementDeck);
-        }
-        else if (_mainDiscardDeck.DiscardDeck.Count >= _mainDeck.Size)
-        {
-            _mainDiscardDeck.ShuffleCardsBackToDeck(_mainDeck);
-        }
+        DeckController deck = _mainDeck.Deck.Count == 0 ? _mainDeck : _movementDeck;
+        
+        discardDeckController.ShuffleCardsBackToDeck(deck);
+        
+        // if (_movDiscardDeck.DiscardDeck.Count >= _movementDeck.Size)
+        // {
+        //     _movDiscardDeck.ShuffleCardsBackToDeck(_movementDeck);
+        // }
+        // else if (_mainDiscardDeck.DiscardDeck.Count >= _mainDeck.Size)
+        // {
+        //     _mainDiscardDeck.ShuffleCardsBackToDeck(_mainDeck);
+        // }
     }
     
     protected void InitializeDecks()
     {
-        var foundDecks = FindObjectsOfType<DeckController>();
+        //var foundDecks = FindObjectsOfType<DeckController>();
         var foundDiscardDecks = FindObjectsOfType<DiscardDeckController>();
-
-        foreach (var deck in foundDecks)
-        {
-            if (deck.HeroClass == _heroClass)
-            {
-                if (deck.TryGetComponent(out MovementDeckController moveDeck))
-                {
-                    _movementDeck = moveDeck;
-                }
-                else if (deck.TryGetComponent(out MainDeckContoller mainDeck))
-                {
-                    _mainDeck = mainDeck;
-                }
-            }
-        }
+        
+        // foreach (var deck in foundDecks)
+        // {
+        //     if (deck.HeroClass == _heroClass)
+        //     {
+        //         if (deck.TryGetComponent(out MovementDeckController moveDeck))
+        //         {
+        //             _movementDeck = moveDeck;
+        //         }
+        //         else if (deck.TryGetComponent(out MainDeckContoller mainDeck))
+        //         {
+        //             _mainDeck = mainDeck;
+        //         }
+        //     }
+        // }
         
         foreach (var discardDeck in foundDiscardDecks)
         {
@@ -258,7 +285,7 @@ public class BaseHero : BaseUnit
         }
     }
     
-    private void PutAllCardsInDecks(BattleManager obj)
+    private void PutAllCardsInDecks(BattleManager obj, RoomData battleRoom)
     {
         foreach (var card in _cardHand)
         {

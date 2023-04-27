@@ -12,6 +12,8 @@ public class BattleManager : MonoBehaviour
     public static BattleManager Instance { get { return _instance; } }
     
     // Attributes ------------------------------------------------------------------------------------------------------
+    private RoomData _battleRoom;
+    
     [SerializeField] private int _rewardsNbr = 3;
     
     private bool _isPlayerTurn;
@@ -33,12 +35,12 @@ public class BattleManager : MonoBehaviour
     #endregion
     
     // Events ----------------------------------------------------------------------------------------------------------
-    public static event Action<BattleManager> OnBattleStart;
+    public static event Action<BattleManager, RoomData> OnBattleStart;
     public static event Action<BattleManager> OnPlayerTurnStart;
     public static event Action<BattleManager> OnPlayerTurnEnd;
     public static event Action<BattleManager> OnEnemyTurnStart;
     public static event Action<BattleManager> OnEnemyTurnEnd;
-    public static event Action<BattleManager> OnBattleEnd;
+    public static event Action<BattleManager, RoomData> OnBattleEnd;
 
     // State Pattern ---------------------------------------------------------------------------------------------------
     
@@ -59,7 +61,9 @@ public class BattleManager : MonoBehaviour
     // Public Methods --------------------------------------------------------------------------------------------------
 
     #region Getters and Setters
-    
+
+    public RoomData BattleRoom => _battleRoom;
+
     public bool IsPlayerTurn { get => _isPlayerTurn; set => _isPlayerTurn = value; }
     
     public StateMachine StateMachine => _stateMachine;
@@ -79,7 +83,7 @@ public class BattleManager : MonoBehaviour
         }
         
         UnitsManager.OnEnemiesTurnEnd += SetTurnToPlayerTurn;
-        DoorTileCell.OnDoorTileEnter += GetSpawnTile;
+        DoorTileCell.OnDoorTileEnter += GetRoomData;
     }
 
     
@@ -90,8 +94,9 @@ public class BattleManager : MonoBehaviour
         _isPlayerTurn = true;
     }
 
-    private void GetSpawnTile(DoorTileCell doorTile)
+    private void GetRoomData(DoorTileCell doorTile)
     {
+        _battleRoom = doorTile.GetRoomNeighbour();
         _heroSpawnPos = doorTile.GetNextRoomSpawnPos();
     }
     
@@ -137,14 +142,16 @@ public class BattleManager : MonoBehaviour
     public void StartBattle()
     {
         //_gridManager.GenerateGrid();
+        _uiBattleManager.BattlePanel.SetActive(true);
+        
         _unitsManager.SpawnHeroes(_heroSpawnPos);
         //_unitsManager.HandleSpawnEnemies();
 
         _isPlayerTurn = true;
         
-        _uiBattleManager.BattlePanel.SetActive(true);
-        
         _stateMachine.SetState(_heroesTurnBattleState);
+        
+        OnBattleStart?.Invoke(this, _battleRoom);
     }
 
     public void EndBattle()
@@ -153,7 +160,7 @@ public class BattleManager : MonoBehaviour
         
         _uiBattleManager.BattlePanel.SetActive(false);
         
-        OnBattleEnd?.Invoke(this);
+        OnBattleEnd?.Invoke(this, _battleRoom);
     }
     
     public void EnterHeroesTurn()
@@ -199,7 +206,7 @@ public class BattleManager : MonoBehaviour
             card.OnCollected += HandleChosenReward;
         }
         
-        //_uiBattleManager.VictoryPanel.SetActive(true);
+        _uiBattleManager.VictoryPanel.SetActive(true);
     }
 
     private void HandleChosenReward(BaseCard obj)
@@ -216,6 +223,8 @@ public class BattleManager : MonoBehaviour
         
         _cardRewards.Clear();
 
+        _uiBattleManager.VictoryPanel.SetActive(false);
+        
         _gameManager.IsInBattleState = false;
     }
 }

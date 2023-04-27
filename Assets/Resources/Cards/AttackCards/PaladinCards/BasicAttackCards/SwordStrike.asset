@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: SwordStrike
   m_EditorClassIdentifier: 
   _rarety: 10
-  _baseCardPrefab: {fileID: -383348146307332146, guid: 2efd38a3de17d1349b84736c4bbca3ab, type: 3}
+  _baseCardPrefab: {fileID: 769551569, guid: b645d0a8b02fd2c40aa6a0e7a7181f79, type: 3}

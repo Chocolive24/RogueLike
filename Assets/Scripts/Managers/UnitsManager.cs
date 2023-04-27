@@ -33,7 +33,7 @@ public class UnitsManager : MonoBehaviour
     // Events ----------------------------------------------------------------------------------------------------------
     public static event Action OnEnemiesTurnEnd;
 
-    public static event Action<UnitsManager> OnHeroSpawn;
+    public static event Action<UnitsManager, BaseHero> OnHeroSpawn;
     
     // Getters and Setters ---------------------------------------------------------------------------------------------
     public BaseHero HeroPlayer => _heroes[0];
@@ -166,7 +166,7 @@ public class UnitsManager : MonoBehaviour
         
         _heroes.Add(spawnedHero);
         
-        OnHeroSpawn?.Invoke(this);
+        OnHeroSpawn?.Invoke(this, spawnedHero);
     }
 
     // Update is called once per frame
@@ -179,6 +179,8 @@ public class UnitsManager : MonoBehaviour
     {
         foreach (var hero in _heroes)
         {
+            OnHeroSpawn?.Invoke(this, hero);
+            
             hero.transform.position = spawnPos;
 
             foreach (var tile in hero.PreviousOccupiedTiles)
